@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx">
+	<!-- host component -->
+	<fx:Metadata>
+		[HostComponent("application.components.progressbar.SparkProgressBar")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import application.components.progressbar.SparkProgressBar;
+			
+			
+			
+		]]>
+	</fx:Script>
+	<s:Rect id="track" top="0" right="0" left="0"
+			height="40" >
+		<s:fill>
+			<s:SolidColor color="#000000" alpha="1"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect id="bar" top="0" left="0" height="40"
+			width="{track.width * (hostComponent.value/(hostComponent.maximum-hostComponent.minimum))}">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="#268891"/>
+				<s:GradientEntry color="#268891"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup id="labelGroup" width="100%" bottom="0" top="{track.height+hostComponent.labelGap}">
+		<s:Label id="label" text="{hostComponent.label}" textAlign="left" visible="{label!=null}" color="#ffffff"  styleName="ButtonBaseStyle" />
+		<s:HGroup width="100%" horizontalAlign="right" gap="0">
+			<s:Label id="progress" text="{Math.round(hostComponent.value*100/(hostComponent.maximum-hostComponent.minimum)).toString()}" 
+					 color="#ffffff" visible="{hostComponent.displayProgress}" styleName="ButtonBaseStyle"/>
+			<s:Label id="percentLabel" text="{hostComponent.percentLabel}" visible="{!(!hostComponent.displayProgress||percentLabel==null)}" 
+					 styleName="ButtonBaseStyle" color="#ffffff"/>
+		</s:HGroup>
+	</s:HGroup>  
+	
+	
+	
+</s:Skin>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   xmlns:popups="application.view.popups.*" 
+				   visible="false" borderVisible="false"
+				   minWidth="250" width="250"
+				   verticalCenter="0" horizontalCenter="0"
+				   initialize="bordercontainer_initializeHandler(event)" 
+				   xmlns:progressbar="application.components.progressbar.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			[Bindable]
+			public var text:String='Loading';
+			
+			[Bindable]
+			public static var instance:LoadingContainer;
+			
+			public var defaultProgressDispatcher:EventDispatcher;
+			
+			public function start(ed:EventDispatcher=null,text:String='Loading',progressVisible:Boolean=true):void
+			{
+				visible=true;
+				this.text=text;
+				if(ed==null)
+				{
+					defaultProgressDispatcher=new EventDispatcher;
+					ed=defaultProgressDispatcher;
+				}
+				if(!progressVisible)
+				{
+					fader.play();
+				}
+				progressBar.displayProgress=progressVisible;
+				progressDispatcher=ed;
+				
+				
+			}
+			public function stop():void
+			{
+				close();
+				defaultProgressDispatcher=null;
+				if(fader.isPlaying)
+				{
+					fader.stop();
+				}
+				
+			}
+			protected function bordercontainer_initializeHandler(event:FlexEvent):void
+			{
+				LoadingContainer.instance=this;
+			}
+			
+			[Bindable]
+			private var progressDispatcher:EventDispatcher;
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:Animate id="fader"
+				   duration="1000"
+				   repeatBehavior="reverse"
+				   repeatCount="0"
+				   target="{this}">
+			<s:SimpleMotionPath property="alpha"
+								valueFrom="1.0" valueTo="0.0" />
+		</s:Animate>
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%"  verticalAlign="middle" horizontalAlign="center" left="10" right="10" top="10" bottom="10">
+		<s:Label text="{text}"  styleName="ButtonThinStyle"  color="0xffffff" fontSize="20"/>
+		<progressbar:SparkProgressBar id="progressBar" width="100%" height="100%" eventSource="{progressDispatcher}" />
+		
+	</s:VGroup>
+</popups:PopUpBorderContainer>

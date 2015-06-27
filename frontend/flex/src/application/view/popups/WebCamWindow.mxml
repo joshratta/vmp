@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:colorpicker="application.components.colorpicker.*">
+	<s:showEffect>
+		<s:Parallel duration="300">
+			<s:Scale scaleXFrom="0.5" autoCenterTransform="true" scaleYFrom="0.5" scaleXTo="1" scaleYTo="1" />
+			<s:Fade alphaFrom="0" alphaTo="1"/>
+		</s:Parallel>
+	</s:showEffect>
+	<s:hideEffect>
+		<s:Parallel duration="300" effectEnd="parallel_effectEndHandler(event)">
+			<s:Scale scaleXFrom="1" autoCenterTransform="true" scaleYFrom="1" scaleXTo="0.7" scaleYTo="0.7" />
+			<s:Fade alphaFrom="1" alphaTo="0"/>
+		</s:Parallel>
+	</s:hideEffect>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.UIDUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import application.components.LoadingContainer;
+			
+			import gshah.GshahDeviceCapture;
+			import gshah.GshahVideoController;
+			import gshah.bg.PopUpBackground;
+			import gshah.events.GshahErrorEvent;
+			import gshah.events.GshahEvent;
+			
+			import sys.SystemSettings;
+			
+			private static const BORDER_WIDTH:Number=3;
+			private static const BORDER_HEIGHT:Number=3;
+			
+			private var webCamVideo:Video;
+			protected function parallel_effectEndHandler(event:EffectEvent):void
+			{
+				if(closing)
+				{
+					closing=false;
+					PopUpManager.removePopUp(this);
+				}
+			}
+			
+			private var closing:Boolean;
+			
+			public function close():void
+			{
+				closing=true;
+				visible=false;
+			}
+			protected function webCamUI_creationCompleteHandler(event:FlexEvent):void
+			{
+				webCamUI.graphics.beginFill(0x303030);
+				webCamUI.graphics.drawRect(0,0,webCamUI.width,webCamUI.height);
+				webCamUI.graphics.endFill();
+				
+				webCamVideo=new Video;
+				var videoDevice:Camera=_selectedWebCameraIndex==-1?null:Camera.getCamera(String(_selectedWebCameraIndex))
+				if(videoDevice!=null)
+				{
+					videoDevice.setMode(GshahDeviceCapture.DEFAULT_WIDTH,GshahDeviceCapture.DEFAULT_HEIGHT,24,true);
+				}
+				webCamVideo.attachCamera(videoDevice);
+				
+				webCamVideo.x=BORDER_WIDTH;
+				webCamVideo.y=BORDER_HEIGHT;
+				webCamVideo.width=GshahDeviceCapture.DEFAULT_WIDTH;
+				webCamVideo.height=GshahDeviceCapture.DEFAULT_HEIGHT;
+				
+				webCamUI.addChild(webCamVideo);		
+				
+			}
+			
+			private var _selectedWebCameraIndex:int;
+			
+			[Bindable]
+			public function get selectedWebCameraIndex():int
+			{
+				return _selectedWebCameraIndex;
+			}
+			
+			public function set selectedWebCameraIndex(value:int):void
+			{
+				_selectedWebCameraIndex = value;
+				if(webCamVideo!=null)
+				{
+					var videoDevice:Camera=_selectedWebCameraIndex==-1?null:Camera.getCamera(String(_selectedWebCameraIndex))
+					if(videoDevice!=null)
+					{
+						videoDevice.setMode(GshahDeviceCapture.DEFAULT_WIDTH,GshahDeviceCapture.DEFAULT_HEIGHT,24,true);
+					}
+					webCamVideo.attachCamera(videoDevice);
+					
+					
+				}		
+			}
+			
+			
+			
+			private var _selectedMicrophoneIndex:int=-1;
+			
+			[Bindable]
+			public function get selectedMicrophoneIndex():int
+			{
+				return _selectedMicrophoneIndex;
+			}
+			
+			public function set selectedMicrophoneIndex(value:int):void
+			{
+				_selectedMicrophoneIndex = value;
+			}	
+			
+			protected function deviceList_changeHandler(event:IndexChangeEvent):void
+			{
+				SharedObject.getLocal('gshah').data[event.target.id+"_lastSelectedItem"]=event.target.selectedItem;
+				SharedObject.getLocal('gshah').data[event.target.id+"_lastSelectedIndex"]=event.target.selectedIndex;
+			}
+			
+			protected function deviceList_creationCompleteHandler(event:FlexEvent):void
+			{
+				if(event.target.dataProvider!=null&&event.target.dataProvider.length>0&&SharedObject.getLocal('gshah').data[event.target.id+"_lastSelectedIndex"]!=null)
+				{
+					event.target.selectedIndex=SharedObject.getLocal('gshah').data[event.target.id+"_lastSelectedIndex"];
+					if(event.target.selectedItem!=SharedObject.getLocal('gshah').data[event.target.id+"_lastSelectedItem"])
+					{
+						event.target.selectedItem=SharedObject.getLocal('gshah').data[event.target.id+"_lastSelectedItem"];
+					}
+				}
+			}
+			
+			private function getCaptureButtonEnabled(captureButtonSelected:Boolean,captureRunning:Boolean):Boolean
+			{
+				if(captureButtonSelected)
+				{
+					return captureRunning;
+				}
+				else
+				{
+					return !captureRunning;
+				}
+			}
+			
+			[Bindable]
+			private var deviceCapture:GshahDeviceCapture=new GshahDeviceCapture;
+			protected function cameraRecorderButton_changeHandler(event:Event):void
+			{
+				if(cameraRecorderButton.selected)
+				{
+					var micIndex:int=-1;
+					var devIndex:int=-1;
+					if(audioDeviceCheckBox.selected)
+					{
+						micIndex=_selectedMicrophoneIndex;
+						if(micIndex==-1)
+						{
+							if(microphoneDropDownList.dataProvider==null||microphoneDropDownList.dataProvider.length==0)
+							{
+								GlamourAlert.show('No audio capture devices found');
+								
+							}
+							else
+							{
+								GlamourAlert.show('Select or disable audio capture device');
+								
+							}
+							cameraRecorderButton.selected=false;
+							return;
+						}
+					}
+					if(videoDeviceCheckBox.selected)
+					{
+						devIndex=_selectedWebCameraIndex;
+						if(devIndex==-1)
+						{
+							if(webCamDropDownList.dataProvider==null||webCamDropDownList.dataProvider.length==0)
+							{
+								GlamourAlert.show('No video capture devices found');
+								
+							}
+							else
+							{
+								GlamourAlert.show('Select or disable video capture device');
+								
+							}
+							cameraRecorderButton.selected=false;
+							return;
+						}
+					}
+					if(devIndex==-1&&micIndex==-1)
+					{
+						GlamourAlert.show('Select at least one capture device');
+						cameraRecorderButton.selected=false;
+						return;
+					}
+					else
+					{
+						deviceCapture.addEventListener(GshahErrorEvent.GSHAH_ERROR, onDeviceCaptureError);
+						deviceCapture.addEventListener(GshahEvent.GSHAH_START, onDeviceCaptureStart);
+						deviceCapture.startRecording(SystemSettings.tempFolder.resolvePath('capturedVideo_'+UIDUtil.createUID()+(devIndex==-1?".mp3":".avi")).nativePath.replace(/\\/g, File.separator),devIndex,micIndex,webCamVideo);
+						
+					}
+				}
+				else if(deviceCapture.running)
+				{
+					deviceCapture.addEventListener(GshahEvent.GSHAH_COMPLETE, onDeviceCaptureCompete);
+					LoadingContainer.instance.start(deviceCapture,'Video is being processed...');
+					PopUpManager.removePopUp(this);
+					deviceCapture.finishRecording();
+				}
+			}
+			protected function onDeviceCaptureStart(event:Event):void
+			{
+				var countDownPopUp:CountDownPopUp=new CountDownPopUp;
+				PopUpManager.addPopUp(countDownPopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				countDownPopUp.parentDisplayObject=this;
+				PopUpManager.centerPopUp(countDownPopUp);
+				deviceCapture.removeEventListener(GshahEvent.GSHAH_START,onDeviceCaptureStart);
+			}
+			
+			protected function onDeviceCaptureError(event:GshahErrorEvent):void
+			{
+				cameraRecorderButton.selected=false;
+				if(deviceCapture.hasEventListener(GshahEvent.GSHAH_START))
+				{
+					deviceCapture.removeEventListener(GshahEvent.GSHAH_START,onDeviceCaptureStart);
+				}
+				deviceCapture.removeEventListener(GshahEvent.GSHAH_COMPLETE,onDeviceCaptureCompete);
+				deviceCapture.addEventListener(GshahErrorEvent.GSHAH_ERROR, onDeviceCaptureError);
+				
+				GlamourAlert.show('Device I/O Error');
+			}
+			
+			protected function onDeviceCaptureCompete(event:GshahEvent):void
+			{
+				if(cameraRecorderButton.selected)
+				{
+					cameraRecorderButton.selected=false;
+					GlamourAlert.show('Device Unknown Error');
+				}
+				else
+				{
+					GshahVideoController.instance.getMetadata(event.data as String);
+					GlamourAlert.show('Captured media was added to library');
+				}
+				if(deviceCapture.hasEventListener(GshahEvent.GSHAH_START))
+				{
+					deviceCapture.removeEventListener(GshahEvent.GSHAH_START,onDeviceCaptureStart);
+				}
+				deviceCapture.removeEventListener(GshahEvent.GSHAH_COMPLETE,onDeviceCaptureCompete);
+				deviceCapture.addEventListener(GshahErrorEvent.GSHAH_ERROR, onDeviceCaptureError);
+				webCamVideo.attachCamera(null);
+				LoadingContainer.instance.stop();
+				
+			}
+			
+			
+			
+			protected function closeButton_clickHandler(event:MouseEvent):void
+			{
+				if(deviceCapture.running)
+				{
+					deviceCapture.cancelRecording();
+				}
+				webCamVideo.attachCamera(null);
+				close();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	
+	
+	<s:BorderContainer backgroundImage="{PopUpBackground}" 
+					   backgroundImageFillMode="repeat"
+					   borderVisible="false"
+					   cornerRadius="10" horizontalCenter="0">
+		<mx:UIComponent id="webCamUI" width="{GshahDeviceCapture.DEFAULT_WIDTH+2*BORDER_WIDTH}" height="{GshahDeviceCapture.DEFAULT_HEIGHT+2*BORDER_HEIGHT}" 
+						left="10" right="10" top="10" bottom="10"
+						creationComplete="webCamUI_creationCompleteHandler(event)"/>
+		<s:Button id="closeButton" click="closeButton_clickHandler(event)" 
+				  right="-10" top="-10" width="40" height="40" 
+				  skinClass="application.skins.GrayCloseButtonSkin"/>
+	</s:BorderContainer>
+	
+	
+	<s:Group id="toolBarGroup" horizontalCenter="0" 
+			 y="{GshahDeviceCapture.DEFAULT_HEIGHT+2*BORDER_HEIGHT+20}" 
+			 width="{GshahDeviceCapture.DEFAULT_WIDTH-40}" 
+			 height="30">
+		<s:Rect left="0" right="0" top="0" height="30" 
+				radiusX="10">
+			<s:fill>
+				<s:SolidColor color="#000000"/>
+			</s:fill>
+		</s:Rect>
+		<s:HGroup verticalAlign="middle" width="{(toolBarGroup.width-100)/2}" height="100%" 
+				  left="5" top="5" bottom="5">
+			<s:CheckBox id="videoDeviceCheckBox" label="Web Camera:"  color="0xffffff" 
+						styleName="ButtonBaseStyle"
+						enabled="{webCamDropDownList.dataProvider.length>0}"
+						selected="{webCamDropDownList.dataProvider.length>0}"/>
+			<s:DropDownList id="webCamDropDownList" width="100%"
+							requireSelection="true" enabled="{videoDeviceCheckBox.selected}"
+							dataProvider="{new ArrayCollection(Camera.names)}" 
+							selectedIndex="@{selectedWebCameraIndex}"
+							horizontalScrollPolicy="off"
+							change="deviceList_changeHandler(event)"
+							creationComplete="deviceList_creationCompleteHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle" width="{(toolBarGroup.width-100)/2}" height="100%" 
+				  right="5" top="5" bottom="5">
+			<s:CheckBox id="audioDeviceCheckBox" label="Audio Device:"
+						styleName="ButtonBaseStyle"  color="0xffffff" 
+						enabled="{microphoneDropDownList.dataProvider.length>0}"
+						selected="{microphoneDropDownList.dataProvider.length>0}"/>
+			<s:DropDownList id="microphoneDropDownList" width="100%"
+							requireSelection="true" enabled="{audioDeviceCheckBox.selected}"
+							dataProvider="{new ArrayCollection(Microphone.names)}" 
+							selectedIndex="@{selectedMicrophoneIndex}"
+							horizontalScrollPolicy="off"
+							change="deviceList_changeHandler(event)"
+							creationComplete="deviceList_creationCompleteHandler(event)"/>
+		</s:HGroup>
+		<s:ToggleButton id="cameraRecorderButton"
+						skinClass="application.skins.WebCamRecButtonSkin" 
+						verticalCenter="0" horizontalCenter="0"  
+						width="77" height="77"
+						change="cameraRecorderButton_changeHandler(event)" 
+						enabled="{getCaptureButtonEnabled(deviceCapture.running,cameraRecorderButton.selected)}"/>
+	</s:Group>
+	
+	
+	
+	
+</s:Group>

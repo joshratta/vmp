@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   xmlns:popups="application.view.popups.*" 
+				   xmlns:colorpicker="application.components.colorpicker.*" 
+				   xmlns:view="application.view.*" contentBackgroundColor="#212021"
+				   resize="popupbordercontainer_resizeHandler(event)"
+				   initialize="popupbordercontainer_initializeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import application.skins.TimelineVScrollBarSkin;
+			
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahAssetType;
+		
+			protected function importMediaButton_clickHandler(event:MouseEvent):void
+			{
+				var assetFile:File=new File;
+				assetFile.addEventListener(FileListEvent.SELECT_MULTIPLE, assetFile_selectHandler);
+				assetFile.browseForOpenMultiple("Choose media files",GshahAssetType.getVideoFileFilters());
+				
+			}
+			protected function assetFile_selectHandler(event:FileListEvent):void
+			{
+				for each (var assetFile:File in event.files) 
+				{
+					GshahVideoController.instance.getMetadata(assetFile.nativePath);
+					
+				}
+			}
+			
+
+			
+			protected function popupbordercontainer_resizeHandler(event:ResizeEvent):void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			protected function popupbordercontainer_initializeHandler(event:FlexEvent):void
+			{
+				fileList.scroller.verticalScrollBar.setStyle('fixedThumbSize',true);
+				fileList.scroller.verticalScrollBar.setStyle("skinClass", TimelineVScrollBarSkin);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:VGroup left="10" top="10" right="10" bottom="10">
+		<s:Label text="Select Your Videos Or Import Media From Your Computer" color="0xffffff" styleName="ButtonBaseStyle"/>
+		<s:HGroup width="100%" height="100%" gap="0">
+			<view:AssetSourceList id="fileList" width="100%"
+							  height="100%" filterType="{GshahAssetType.VIDEO}" verticalScrollPolicy="auto">
+			<view:layout>
+				<s:TileLayout id="tl" paddingTop="0" paddingBottom="0" paddingLeft="0" paddingRight="0" verticalGap="10" horizontalGap="10" 
+							  horizontalAlign="center" verticalAlign="top" requestedColumnCount="3" requestedRowCount="2"/>
+			</view:layout>
+		</view:AssetSourceList>
+		</s:HGroup>  
+		
+		
+		<s:HGroup gap="6" height="46" verticalAlign="bottom" horizontalAlign="center">
+			<s:Button id="importMediaButton" label="Import Media" fontSize="24" width="120" height="36" 
+					  click="importMediaButton_clickHandler(event)" 
+					  color="0xffffff" chromeColor="#0094A5" styleName="PopUpButton"/>
+		
+			<s:Button id="yesButton" label="Select Media" styleName="PopUpButton" buttonMode="true" width="120" 
+					  chromeColor="0xFF3B42"
+					  height="36" click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE,false,false,Alert.OK))" 
+					  enabled="{fileList.selectedIndex!=-1}"/>
+			<s:Button id="noButton" label="Cancel" styleName="PopUpButton" buttonMode="true" width="120" height="36"
+					  chromeColor="0xAAAAAA" click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE))"/>
+		</s:HGroup>  
+
+	</s:VGroup>
+</popups:PopUpBorderContainer>

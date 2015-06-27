@@ -1,0 +1,1 @@
+Screencapture app for both Windows and Mac platforms, starting with just Windows support

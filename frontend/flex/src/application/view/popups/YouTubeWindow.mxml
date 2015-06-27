@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							 xmlns:s="library://ns.adobe.com/flex/spark" 
+							 xmlns:mx="library://ns.adobe.com/flex/mx"
+							 xmlns:progressbar="application.components.progressbar.*" 
+							 xmlns:popups="application.view.popups.*" 
+							 show="creationCompleteHandler(event)" xmlns:components="application.components.*">
+	<fx:Script>
+		<![CDATA[
+			import application.events.AppEvent;
+			import application.managers.YoutubeManager;
+			
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			public var processing:Boolean;
+			[Bindable]
+			private var manager:YoutubeManager;
+			[Bindable]
+			public var signing:Boolean = false;
+			[Bindable]
+			public var isSigned:Boolean = false;
+			[Bindable]
+			public var loading:Boolean = false;
+			[Bindable]
+			public var loadingSuccess:Boolean = false;
+			public var webView:StageWebView
+			public var viewPort:Rectangle;
+			private const BORDER_X:int = 30;
+			private const BORDER_Y:int = 1;
+			private const LINK_TEXT:String = "The video URL: ";
+			
+			protected function signInHandler(event:MouseEvent):void
+			{
+				if(!webView){
+					viewPort = new Rectangle(x + BORDER_X, y + BORDER_Y, width - BORDER_X * 2, height - BORDER_Y * 2);
+					webView = new StageWebView();
+					webView.stage = stage;
+				}
+				signing=true;
+				webView.viewPort = viewPort;
+				if(!manager)
+					manager = new YoutubeManager(this);
+			}
+			
+			public function setAlert(text:String, title:String):void
+			{
+				GlamourAlert.show(text, title);
+			}
+			
+			public function setUploading(on:Boolean, text:String, id:String=""):void
+			{
+				if(on)
+					loading = true;
+				else{
+					loadingSuccess = true;
+					if(id != "")
+						urlButton.label += "http://youtu.be/" + id;
+				}
+				fileNameLabel.text = text;
+			}
+			
+			protected function uploadClickHandler(event:MouseEvent):void
+			{
+				if(!manager)
+					setAlert("Sign in first.", "Fault");
+				else
+					manager.uploadVideo();
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				signing = false;
+				focusManager.setFocus(titleInput);
+			}
+			
+			public function clearInputs():void
+			{
+				titleInput.text = "";
+				tagsInput.text = "";
+				descriptionInput.text = "";
+				privacyChooser.selectedIndex = 0;
+			}
+			
+			protected function labelClickHandler(event:MouseEvent):void
+			{
+				//if(event.target.id == "urlLabel")
+				navigateToURL(new URLRequest(urlButton.label.replace(LINK_TEXT, "")));
+			}
+			
+			protected function closeWebButton_clickHandler(event:MouseEvent):void
+			{
+				signing=false;
+				webView.viewPort=null;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:ArrayCollection id="privacies">
+			<fx:Object label="private" data="private"/>
+			<fx:Object label="public" data="public"/>
+			<fx:Object label="unlisted" data="unlisted"/>
+		</s:ArrayCollection>
+		<fx:String id="warning">By clicking "Upload Video" you certify that you own all rights of the content or that you authorized by the owner to make the content publicity available on the YouTube, and that it otherwise complies with the YouTube Terms of Service, located at http://www.youtube.com/t/terms.'/></fx:String>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[Event(name="YouTubePopUp", type="application.events.AppEvent")]
+	</fx:Metadata>
+	<s:VGroup visible="{loading}" width="100%" horizontalAlign="center" verticalCenter="0" gap="20">
+		<s:Label id="fileNameLabel" color="#ffffff" styleName="ButtonBaseStyle"/>
+		<!--<mx:Label id="urlLabel" color="#ffffff" styleName="ButtonBaseStyle" text="{LINK_TEXT}" visible="{loadingSuccess}" click="labelClickHandler(event)"/>-->
+		<s:HGroup visible="{loadingSuccess}">
+			<s:Group>
+				<s:Label top="8" text="{LINK_TEXT}" color="#FFFFFF" fontSize="14" height="{urlButton.height}" fontWeight="bold" fontFamily="Arial"/>
+			</s:Group>
+			<components:LinkButton id="urlButton" click="labelClickHandler(event)" label="" 
+								   color="#51aff8" fontSize="16" fontWeight="bold" fontFamily="Arial"/>
+			<s:Button styleName="PopUpButton" label="Copy" buttonMode="true" height="23" 
+					  click="Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, urlButton.label);"/>
+		</s:HGroup>
+		<progressbar:SparkProgressBar id="uploadProgress" eventSource="{manager.resource}" width="200" labelGap="20" percentLabel="% complete"/>
+		<s:Group>
+			<s:Button styleName="PopUpButton" width="120" height="36" visible="{loadingSuccess}" label="OK" 
+					  click="{loadingSuccess = loading = false;}"/>
+			<s:Button styleName="PopUpButton" width="120" height="36" visible="{!loadingSuccess}" label="Cancel" 
+					  click="{dispatchEvent(new AppEvent(AppEvent.YOU_TUBE_POPOUT, false));manager.cancel();loadingSuccess = loading = false;}"/>
+		</s:Group>
+	
+		<s:Label text="This URL may not work for a few seconds until YouTube finishes transcoding and publishing your video." maxWidth="300" 
+				 visible="{loadingSuccess}" color="#ffffff" styleName="ButtonBaseStyle" fontSize="9" textAlign="center"/>
+	</s:VGroup>
+	<s:VGroup top="26" left="70" right="120" bottom="20" horizontalAlign="left" gap="12" visible="{!loading}">
+		<s:Group width="100%">
+			<s:Label maxDisplayedLines="1" text="Upload Video To Youtube" fontSize="18" color="#ffffff" styleName="ButtonBaseStyle" left="0" top="8"/>
+			<s:Label id="userName" maxDisplayedLines="1" fontSize="14" color="#ffffff" styleName="ButtonBaseStyle" right="0"  visible="{isSigned}" includeInLayout="{isSigned}" top="11"/>
+			<s:Button label="{signing ? 'Processing' : 'Sign In'}" styleName="PopUpButton" width="120" height="36" right="0" visible="{!isSigned}" includeInLayout="{!isSigned}"
+					  click="signInHandler(event)" buttonMode="true" chromeColor="{signing ? 0xAAAAAA : 0xFE3B41}"/>
+		</s:Group>
+		<s:Spacer height="20"/>
+		<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
+			<s:Label text="Title:" width="80" textAlign="right" color="#ffffff" styleName="ButtonBaseStyle"/>
+			<s:TextInput id="titleInput" height="30" width="100%" styleName="PopUpTextInput" color="0x212021"/>
+		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
+			<s:Label text="Tags:" width="80" textAlign="right" color="#ffffff" styleName="ButtonBaseStyle"/>
+			<s:TextInput id="tagsInput" height="30" width="100%" styleName="PopUpTextInput" color="0x212021"/>
+		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
+			<s:Label text="Description:" width="80" textAlign="right" color="#ffffff" styleName="ButtonBaseStyle"/>
+			<s:TextArea id="descriptionInput" height="90" width="100%" styleName="PopUpTextArea" color="0x212021"/>
+		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right" verticalAlign="top">
+			<s:Group height="16">
+				<s:Label text="Privacy:" width="80" top="3" textAlign="right" color="#ffffff" styleName="ButtonBaseStyle"/>
+			</s:Group>
+			<s:VGroup>
+				<s:DropDownList id="privacyChooser" dataProvider="{privacies}" selectedIndex="0" height="30" width="140"/>
+				<s:Label fontSize="9" width="360" text="{warning}" maxDisplayedLines="4" color="#ffffff" styleName="ButtonBaseStyle"/>
+			</s:VGroup>
+		</s:HGroup>
+		<s:Spacer height="5"/>
+		<s:HGroup>
+			<s:Spacer width="80"/>
+			<s:Button label="Upload Video" width="120" height="36" styleName="PopUpButton" fontSize="20" click="uploadClickHandler(event)" 
+					  buttonMode="true"/>
+			<s:Button label="Cancel" width="120" height="36" styleName="PopUpButton" chromeColor="0xAAAAAA" buttonMode="true"
+					  click="dispatchEvent(new AppEvent(AppEvent.YOU_TUBE_POPOUT, false))"/>
+		</s:HGroup>
+	</s:VGroup>
+	<s:Button id="closeWebButton" visible="{!(!signing||processing)}"
+			  width="20" height="20" right="10" click="closeWebButton_clickHandler(event)"
+			  skinClass="application.skins.GrayCloseButtonSkin"/>
+</popups:PopUpBorderContainer>

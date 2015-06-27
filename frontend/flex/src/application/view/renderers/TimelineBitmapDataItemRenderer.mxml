@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="false"
+				height="{GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT}"
+				width="{previewWidth}" xmlns:timeline="application.components.timeline.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			
+			import gshah.entities.GshahAsset;
+			import gshah.entities.GshahAssetType;
+			import gshah.events.GshahEvent;
+			import gshah.utils.GshahAssetUtils;
+			
+			public static const STATE_BITMAPDATA:String='bitmapDataState';
+			public static const STATE_WAVEFORM:String='waveFormState';
+			public static const STATE_COMBINED:String='combinedState';
+			
+			
+			
+			[Bindable]
+			private var preview:Object;			
+			
+			protected function onIOError(e:IOErrorEvent):void
+			{
+				trace(e);
+			}
+			private function onLoadImage(e:Event):void
+			{
+				
+				preview=e.target.content.bitmapData;
+			}
+			
+			[Bindable]
+			private var waveForm:ByteArray;
+			
+			override public function set data(value:Object):void
+			{
+				
+				if(asset==null)
+				{
+					asset=ownerGroup.asset;
+				}
+				
+				super.data = value;
+				preview=null;
+				waveForm=null;
+
+
+				if(data!=null)
+				{
+
+					if(asset.type==GshahAssetType.VIDEO)
+					{
+
+						currentState=STATE_COMBINED;
+
+						var w:int=data.length/(height+1)/4;
+						var bitmapBytes:ByteArray= new ByteArray();
+						data.position=0;
+						data.readBytes(bitmapBytes,w*4,w*height*4);
+						
+						var bd:BitmapData=new BitmapData(w,height);
+						bd.setPixels(new Rectangle(0,0,bd.width,bd.height),bitmapBytes);
+						
+						waveForm=data as ByteArray;
+
+						preview=bd;		
+					}
+					else if(asset.type==GshahAssetType.AUDIO)
+					{
+						currentState=STATE_WAVEFORM;
+						waveForm=data as ByteArray;
+					}
+						
+					else
+					{
+						currentState=STATE_BITMAPDATA;
+						preview=data;
+						
+					}
+					
+				}
+				else
+				{
+					currentState=STATE_BITMAPDATA;
+					if(ownerGroup!=null&&ownerGroup.data!=null&&(ownerGroup.data.type==GshahAssetType.VIDEO||ownerGroup.data.type==GshahAssetType.AUDIO||ownerGroup.data.type==GshahAssetType.ANIMATION))
+					{
+						
+						preview=GshahAssetUtils.getLoadingPreview(previewWidth);
+					}
+				}
+				
+			}
+			
+			[Bindable]
+			public var asset:GshahAsset;
+			
+			private var _ownerGroup:TimeLineAssetItemRenderer;
+			private function get ownerGroup():TimeLineAssetItemRenderer
+			{
+				if(_ownerGroup==null)
+				{
+					var _owner:UIComponent=this.owner as UIComponent;
+					while(!(_owner is TimeLineAssetItemRenderer))
+					{
+						_owner=_owner.owner as UIComponent;
+					}
+					_ownerGroup=_owner as TimeLineAssetItemRenderer;
+				}
+				return _ownerGroup;
+			}
+			
+			[Bindable(event="dataChange")]
+			private function get previewWidth():Number
+			{
+				if(owner==null||Object(owner).owner==null)
+				{
+					return 0;
+				}
+				
+				return Object(owner).owner.width/ownerGroup.previewGroup.dataProvider.length;
+				
+			}
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="combinedState"/>
+		<s:State name="bitmapDataState"/>
+		<s:State name="waveFormState"/>
+	</s:states>
+	<s:Image id="bi" source="{preview}" includeIn="bitmapDataState,combinedState"
+			 scaleMode="zoom" fillMode="repeat"
+			 left="0" right="0" top="0" bottom="0"/>
+	<timeline:TimelineWaveFormUI id="twfUI" data="{waveForm}"
+								 volume="{asset.volume}" o="{this}"
+								 includeIn="waveFormState,combinedState" 
+								 width="{previewWidth}" height="{height}"
+								 left="0" right="0" top="0" bottom="0"/>
+</s:ItemRenderer>

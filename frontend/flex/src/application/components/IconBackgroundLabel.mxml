@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var iconSource:Object;
+			
+			[Bindable]
+			public var labelText:String;
+			
+			[Bindable]
+			public var iconBackgroundColor:uint=0x1e2d3f;
+			
+			[Bindable]
+			public var iconBackgroundWidth:Number=32;
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:HGroup width="100%" height="100%" verticalAlign="middle">
+		<s:Group width="{iconBackgroundWidth}" height="100%">
+			<!--<s:Rect width="100%" height="100%">
+				<s:fill>
+					<s:SolidColor color="{iconBackgroundColor}"/>
+				</s:fill>
+			</s:Rect>-->
+			
+			<s:BitmapImage id="iconDisplay" verticalCenter="0" horizontalCenter="0" source="{iconSource}"/>
+		</s:Group>
+		
+		<s:Label id="labelDisplay" text="{labelText}"/>
+	</s:HGroup>  
+	
+	
+	
+</s:Group>

@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							 xmlns:s="library://ns.adobe.com/flex/spark" 
+							 xmlns:mx="library://ns.adobe.com/flex/mx" 
+							 xmlns:popups="application.view.popups.*" 
+							 xmlns:asl="application.components.asl.*" 
+							 xmlns:gshah="gshah.*" initialize="titlewindow_initializeHandler(event)"
+							 creationComplete="titlewindow_creationCompleteHandler(event)" xmlns:colorpicker="application.components.colorpicker.*">
+	<fx:Script>
+		<![CDATA[
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.graphics.codec.PNGEncoder;
+			import mx.managers.PopUpManager;
+			import mx.utils.UIDUtil;
+			
+			import spark.components.Button;
+			import spark.components.TextArea;
+			import spark.events.IndexChangeEvent;
+			
+			import application.managers.GshahAnimationLibrary;
+			import application.managers.TimelineManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.GshahAnimationLibraryItem;
+			import application.managers.components.UndoRedoManagerItem;
+			import application.managers.components.UndoRedoManagerItemType;
+			import application.skins.TimelineVScrollBarSkin;
+			
+			import gshah.GshahThumbnailer;
+			import gshah.GshahVideoController;
+			import gshah.IGshahOutroController;
+			import gshah.components.convertes.MovieClipToBitmapConverter;
+			import gshah.entities.GshahAsset;
+			import gshah.entities.GshahAssetType;
+			import gshah.entities.GshahSource;
+			import gshah.events.GshahEvent;
+			import gshah.intros.texts.GshahTextFont;
+			import gshah.outros.OutroVideoData;
+			import gshah.utils.GshahAssetUtils;
+			
+			import sys.SystemSettings;
+			
+			
+			public static const STATE_LOWER_THIRDS:String='lowerThirdsState';
+			public static const STATE_INTROS:String='introsState';
+			public static const STATE_OUTROS:String='outrosState';
+			public static const STATE_TEXT_SLIDES:String='textSlidesState';
+			
+			
+			protected function titlewindow_closeHandler(event:CloseEvent):void
+			{
+				if(event.detail==Alert.OK)
+				{
+					enabled=false;
+					
+					var texts:Array=[]
+					for (var i:int = 0; i < gshahUI.overlay.numTexts; i++) 
+					{
+						texts.push(gshahUI.overlay.getText(i));
+					}
+					var guic:GshahAnimationUI=new GshahAnimationUI;
+					TimelineManager.instance.animationContainer.addChild(guic);
+					guic.overlay=GshahAnimationLibrary.instance.getAnimationById(GshahAnimationLibrary.instance.getAnimationId(gshahUI.overlay));
+					guic.addEventListener(GshahEvent.GSHAH_COMPLETE, gshahUI_gshahCompleteHandler);
+					guic.createAsset(texts,introsList.selectedItem.logos);
+					
+				}
+				else
+				{
+					close();
+				}
+				
+				
+				
+			}
+			
+			
+			
+			
+			
+			protected function logoDataGroup_clickHandler(event:MouseEvent):void
+			{
+				if(event.target is Button)
+				{
+					
+					var num:int=event.target.owner.itemIndex;
+					
+					if(currentState==STATE_OUTROS)
+					{
+						var selectVideoWindow:SelectOutroVideoWindow=new SelectOutroVideoWindow;
+						PopUpManager.addPopUp(selectVideoWindow,FlexGlobals.topLevelApplication as DisplayObject,true);
+						PopUpManager.centerPopUp(selectVideoWindow);
+						selectVideoWindow.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void
+						{
+							if(event.detail==Alert.OK)
+							{
+								var s:GshahSource=selectVideoWindow.fileList.selectedItem as GshahSource;
+								
+								var thumbnailer:GshahThumbnailer=new GshahThumbnailer();
+								
+								var thumbnailer_gshahCompleteHandler:Function=function(event:GshahEvent):void
+								{
+									thumbnailer.removeEventListener(GshahEvent.GSHAH_COMPLETE,thumbnailer_gshahCompleteHandler);
+									thumbnailer.close();
+									thumbnailer=null;
+									var d:File=SystemSettings.tempFolder.resolvePath('outroLogo_'+UIDUtil.createUID()+'.png');
+									var pngEncoder:PNGEncoder = new PNGEncoder();
+									var byteArray:ByteArray = pngEncoder.encode(event.data as BitmapData);
+									var fs:FileStream=new FileStream;
+									fs.open(d,FileMode.WRITE);
+									fs.writeBytes(byteArray);
+									fs.close();
+									introsList.selectedItem.logos[num]=d.nativePath.replace(/\\/g, File.separator);
+									introsList.selectedItem.videos[num]=s;
+									gshahUI.setOverlayLogo(d,num);
+								}
+								
+								
+								var vd:OutroVideoData=(gshahUI.overlay as IGshahOutroController).videoDatas[num] as OutroVideoData;
+								
+								thumbnailer.addEventListener(GshahEvent.GSHAH_COMPLETE,thumbnailer_gshahCompleteHandler);
+								thumbnailer.start(GshahAssetType.VIDEO, s.source.nativePath.replace(/\\/g, File.separator),[{s:0, e:0}],1,vd.width,vd.height);
+							}
+							selectVideoWindow.fileList.filterType=null;
+							PopUpManager.removePopUp(selectVideoWindow);
+							
+						});
+						
+					}
+					else
+					{
+						var f:File=new File;
+						
+						f.addEventListener(Event.SELECT, function(event:Event):void
+						{
+							
+							introsList.selectedItem.logos[num]=(event.target as File).nativePath.replace(/\\/g, File.separator);
+							gshahUI.setOverlayLogo(event.target as File,num);
+							
+						});
+						
+						f.browseForOpen("Choose image file",GshahAssetType.getImageFileFilters());
+					}
+				}
+			}
+			
+			
+			protected function titlewindow_initializeHandler(event:FlexEvent):void
+			{
+				addEventListener(CloseEvent.CLOSE,titlewindow_closeHandler);
+				
+				if(stage.frameRate==MovieClipToBitmapConverter.WORK_FRAMERATE)
+				{
+					stage.frameRate=MovieClipToBitmapConverter.oldFrameRate;
+				}
+				width=FlexGlobals.topLevelApplication.width*3/4;
+				
+				if(currentState==STATE_OUTROS)
+				{
+					height=FlexGlobals.topLevelApplication.height*5/6;
+				}
+				else
+				{
+					height=FlexGlobals.topLevelApplication.height*3/4;
+					
+				}
+				
+				
+			}
+			[Bindable]
+			private var animationLibrary:GshahAnimationLibrary=GshahAnimationLibrary.instance;
+			
+			protected function introsList_changeHandler(event:IndexChangeEvent=null):void
+			{
+				var li:GshahAnimationLibraryItem=introsList.selectedItem as GshahAnimationLibraryItem;
+				if(li!=null)
+				{
+					gshahUI.overlay=li.controller;
+					if(currentState==STATE_OUTROS)
+					{
+						gshahUI.animationScale=Math.min(height*0.4*1280/720/gshahUI.overlay.contentWidth,height*0.4/gshahUI.overlay.contentHeight);
+						gshahUI.x=(height*0.4*1280/720-gshahUI.overlay.contentWidth*gshahUI.animationScale)/2;
+						gshahUI.y=(height*0.4-gshahUI.overlay.contentHeight*gshahUI.animationScale)/2;
+					}
+					else
+					{
+						gshahUI.animationScale=Math.min(height*0.5*1280/720/gshahUI.overlay.contentWidth,height*0.5/gshahUI.overlay.contentHeight);
+						gshahUI.x=(height*0.5*1280/720-gshahUI.overlay.contentWidth*gshahUI.animationScale)/2;
+						gshahUI.y=(height*0.5-gshahUI.overlay.contentHeight*gshahUI.animationScale)/2;
+						if(currentState==STATE_INTROS||currentState==STATE_TEXT_SLIDES)
+						{
+							introsSelectedColor=li.bgColor;
+						}
+					}
+					
+					
+					textDataGroup.dataProvider=new ArrayList(new Array(li.controller.numTexts));
+					logoDataGroup.dataProvider=new ArrayList(new Array(li.controller.numLogos));
+				}
+			}
+			
+			protected function titlewindow_creationCompleteHandler(event:FlexEvent):void
+			{
+				introsList_changeHandler();
+				PopUpManager.centerPopUp(this);
+			}
+			
+			protected function gshahUI_gshahCompleteHandler(event:GshahEvent):void
+			{
+				event.target.removeEventListener(GshahEvent.GSHAH_COMPLETE,gshahUI_gshahCompleteHandler);
+				var gs:GshahSource=event.data as GshahSource;
+				if(currentState==STATE_OUTROS)
+				{
+					var li:GshahAnimationLibraryItem=introsList.selectedItem as GshahAnimationLibraryItem;
+					var ga:GshahAsset=new GshahAsset(gs,gs.type);
+					ga.layer=TimelineManager.instance.layersCount;
+					TimelineManager.instance.layersCount++;
+					ga.timelineStart=GshahVideoController.instance.duration*1000;
+					GshahAssetUtils.fullScreenAsset(ga);
+					GshahAssetUtils.fixAssetRatio(ga);
+					var redos:Array=[];
+					
+					for (var i:int = 0; i < li.videos.length; i++) 
+					{
+						
+						var s:GshahSource=li.videos[i] as GshahSource;
+						if(s!=null)
+						{
+							var vd:OutroVideoData=(li.controller as IGshahOutroController).videoDatas[i] as OutroVideoData;
+							var a:GshahAsset=new GshahAsset(s,s.type);
+							a.parrentUuid=ga.uuid;
+							a.timelineStart=ga.timelineStart+vd.startFrame*1000/gs.metadata.tbr;
+							a.x=vd.x*ga.width/ga.source.metadata.resX;
+							a.y=vd.y*ga.height/ga.source.metadata.resY;
+							a.width=vd.width*ga.width/ga.source.metadata.resX;
+							a.height=vd.height*ga.height/ga.source.metadata.resY;
+							a.parts=[{s:0,e:gs.metadata.duration*1000-a.timelineStart+ga.timelineStart}];
+							a.volume=0;
+							TimelineManager.instance.dataProvider.addItem(a);
+							GshahVideoController.instance.addAsset(a)
+							redos.push(UndoRedoManager.addAssetFunction(a,TimelineManager.instance.dataProvider.getItemIndex(a)));
+						}
+					}
+					TimelineManager.instance.dataProvider.addItem(ga);
+					GshahVideoController.instance.addAsset(ga);
+					
+					redos.push(UndoRedoManager.addAssetFunction(ga,TimelineManager.instance.dataProvider.getItemIndex(ga)));
+					UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.ADD,[UndoRedoManager.removeAssetFunction(a)],redos));
+					
+				}
+				else
+				{
+					if(currentState==STATE_INTROS||currentState==STATE_TEXT_SLIDES)
+					{
+						(event.data as GshahSource).metadata.bgColor=introsSelectedColor;
+					}
+					var __a:GshahAsset=TimelineManager.instance.addAsset(gs);
+					UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.ADD,
+						[UndoRedoManager.removeAssetFunction(__a)],[UndoRedoManager.addAssetFunction(__a,TimelineManager.instance.dataProvider.getItemIndex(__a))]));
+				}
+				close();
+			}
+			
+			protected function list_initializeHandler(event:FlexEvent):void
+			{
+				List(event.target).scroller.verticalScrollBar.setStyle('fixedThumbSize',true);
+				List(event.target).scroller.verticalScrollBar.setStyle("skinClass", TimelineVScrollBarSkin);
+			}
+			
+			[Bindable]
+			private var introsSelectedColor:int;
+			
+			protected function setOutroLogoButton_clickHandler(event:MouseEvent):void
+			{
+				var f:File=new File;
+				
+				f.addEventListener(Event.SELECT, function(event:Event):void
+				{
+					
+					gshahUI.setOutroLogo(event.target as File);
+					
+				});
+				
+				f.browseForOpen("Choose image file",GshahAssetType.getImageFileFilters());
+				
+			}
+			
+			protected function scroller_initializeHandler(event:FlexEvent):void
+			{
+				Scroller(event.target).verticalScrollBar.setStyle('fixedThumbSize',true);
+				Scroller(event.target).verticalScrollBar.setStyle("skinClass", TimelineVScrollBarSkin);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	<popups:states>
+		<s:State name="lowerThirdsState"/>
+		<s:State name="introsState" stateGroups="bgStates"/>
+		<s:State name="outrosState"/>		
+		<s:State name="textSlidesState" stateGroups="bgStates"/>
+	</popups:states>
+	<s:HGroup left="10" right="30" top="10" bottom="10" gap="40" maxHeight="{height-20}">
+		<s:VGroup width="100%"  height="100%">
+			<s:Label text.lowerThirdsState="Add Lower Third" 
+					 text.introsState="Add Intro Video"
+					 text.outrosState="Add Outro Video"
+					 text.textSlidesState="Add Text Slide"
+					 color="0xffffff" width="100%"
+					 styleName="ButtonThinStyle" fontSize="22" textAlign="center"/>
+			<s:List id="introsList" width="100%" height="100%" selectionColor="0xff0000"
+					requireSelection="true" contentBackgroundAlpha="0" 
+					initialize="list_initializeHandler(event)"
+					dataProvider.lowerThirdsState="{animationLibrary.getLowerThirdsDataProvider()}"
+					dataProvider.introsState="{animationLibrary.getIntrosDataProvider()}"
+					dataProvider.outrosState="{animationLibrary.getOutrosDataProvider()}"
+					dataProvider.textSlidesState="{animationLibrary.getTextSlidesDataProvider()}"
+					horizontalScrollPolicy="off"
+					change="introsList_changeHandler(event)">
+				<s:itemRenderer>
+					<fx:Component>
+						<s:ItemRenderer width="100%" contentBackgroundAlpha="0">
+							<s:Label text="{data.label} ({Math.round(data.getDuration()).toFixed(0)} secs)" toolTip="{data.label} ({Math.round(data.getDuration()).toFixed(0)} secs)"  color="0xffffff" width="100%"  maxDisplayedLines="1"
+									 paddingLeft="5" paddingBottom="5" paddingTop="5" paddingRight="5"
+									 styleName="ButtonThinStyle" fontSize="18" textAlign="left"/>
+						</s:ItemRenderer>
+					</fx:Component>
+				</s:itemRenderer>
+			</s:List>
+			<s:HGroup verticalAlign="middle" includeIn="introsState,textSlidesState" >
+				<s:Label text="Background Color" 
+						 color="0xffffff"
+						 styleName="ButtonThinStyle"/>
+				<colorpicker:SparkColorPicker id="introsColorPicker"  selectedColor="@{introsSelectedColor}"/>
+			</s:HGroup>
+			<s:Button id="setOutroLogoButton" label="Add Outro Logo" includeIn="outrosState"
+					  fontSize="24" click="setOutroLogoButton_clickHandler(event)"
+					  color="0xffffff" chromeColor="#fd3c40" width="100%" height="36" 
+					  styleName="PopUpButton"/>
+		</s:VGroup>  
+		<s:VGroup height="100%">
+			<s:Label text="Preview Video"  color="0xffffff" width="100%"
+					 styleName="ButtonThinStyle" fontSize="22" textAlign="center"/>
+			<s:BorderContainer id="gshahBC" width="{(gshahBC.height-10)*1280/720+10}" height.outrosState="{height*0.4+10}" height="{height*0.5+10}"
+							   borderStyle="inset" borderWeight="5" backgroundAlpha="0" 
+							   backgroundAlpha.bgStates="1" backgroundColor.bgStates="{introsSelectedColor}">
+				<gshah:GshahAnimationUI id="gshahUI" mask="{bcMask}"/>
+				<s:Group  id="bcMask" height="{gshahBC.height-10}"
+						  width="{gshahBC.width-10}" visible="false" includeInLayout="false">
+					<s:Rect left="0" right="0" top="0" bottom="0" >
+						<s:fill>
+							<s:SolidColor color="#000000" />
+						</s:fill>
+					</s:Rect>
+				</s:Group>
+			</s:BorderContainer> 
+			
+			
+			<s:List id="logoDataGroup" click="logoDataGroup_clickHandler(event)"
+					width="100%" height="100%" maxHeight="{logoDataGroup.dataProvider.length>2?72:36}" contentBackgroundAlpha="0" borderVisible="false"
+					initialize="list_initializeHandler(event)" includeInLayout="{logoDataGroup.dataProvider.length>0}">
+				<s:layout>
+					<s:TileLayout  verticalGap="1" horizontalGap="1" requestedColumnCount="{logoDataGroup.dataProvider.length>6?3:2}" columnAlign="justifyUsingWidth"/>
+				</s:layout>
+				<s:itemRenderer>
+					<fx:Component>
+						<s:ItemRenderer width="100%" height="100%" autoDrawBackground="false">
+							<s:Button id="setLogoButton" label="Add Logo #{itemIndex+1}"
+									  fontSize="24"
+									  color="0xffffff" chromeColor="#fd3c40" width="100%" height="36" 
+									  styleName="PopUpButton"/>
+							
+						</s:ItemRenderer>
+					</fx:Component>
+				</s:itemRenderer>
+				<s:itemRenderer.outrosState>
+					<fx:Component>
+						<s:ItemRenderer width="100%" height="100%" autoDrawBackground="false">
+							<s:Button id="setLogoButton" label="Add Video #{itemIndex+1}"
+									  fontSize="24"
+									  color="0xffffff" chromeColor="#fd3c40" width="100%" height="36" 
+									  styleName="PopUpButton"/>
+							
+						</s:ItemRenderer>
+					</fx:Component>
+				</s:itemRenderer.outrosState>
+			</s:List> 
+			<s:Scroller width="100%" height="100%" initialize="scroller_initializeHandler(event)">
+				
+				
+				<s:DataGroup id="textDataGroup" contentBackgroundAlpha="0"
+							 width="100%" height="100%">
+					<s:layout>
+						<s:TileLayout  verticalGap="1" horizontalGap="1"  requestedColumnCount="2"  columnAlign="justifyUsingWidth"/>
+					</s:layout>
+					<s:itemRenderer>
+						<fx:Component>
+							<s:ItemRenderer width="100%" height="100%" autoDrawBackground="false">
+								<fx:Script>
+									<![CDATA[
+										import application.view.popups.AddAnimationWindow;
+										import mx.core.UIComponent;
+										
+										
+										import fonts.GshahFont;
+										
+									]]>
+								</fx:Script>
+								<s:VGroup width="100%" height="100%" >
+									<s:HGroup width="100%" height="100%" >
+										<s:TextArea id="setTextArea" text="@{parentDocument.introsList.selectedItem.controller.getText(itemIndex).text}"
+													fontSize="11" color="0xffffff" contentBackgroundColor="#333333" width="100%" height="30"/>
+										<s:NumericStepper id="fontSizeNumericStepper" minimum="1" maximum="100" width="60"
+														  value="@{parentDocument.introsList.selectedItem.controller.getText(itemIndex).fontSize}"/>
+										<colorpicker:SparkColorPicker id="setColorPicker"  
+																	  selectedColor="@{parentDocument.introsList.selectedItem.controller.getText(itemIndex).fontColor}"/>
+										
+									</s:HGroup>  
+									<s:HGroup width="100%" height="100%" >
+										<s:DropDownList id="fontFamilyDropDownList" width="100%" selectedItem="@{parentDocument.introsList.selectedItem.controller.getText(itemIndex).fontName}"
+														requireSelection="true" dataProvider="{GshahFont.getFontAnimationProvider()}"/>
+									</s:HGroup>  
+								</s:VGroup>  
+								
+								
+								
+								
+								
+							</s:ItemRenderer>
+						</fx:Component>
+					</s:itemRenderer>
+				</s:DataGroup> 
+			</s:Scroller>
+			<s:HGroup width="100%" horizontalAlign="right">
+				<s:Button id="addIntroButton" 
+						  enabled="{introsList.selectedIndex!=-1}"
+						  label.lowerThirdsState="Add Lower 3rd" 
+						  label.introsState="Add Intro"
+						  label.outrosState="Add Outro"
+						  label.textSlidesState="Add Text Slide"
+						  fontSize="24" width="120" height="36" 
+						  click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE,false,false,Alert.OK))" 
+						  color="0xffffff" chromeColor="#FF3B42" styleName="PopUpButton"/>
+				<s:Button id="cancelButton" label="Cancel" fontSize="24" width="120" height="36" 
+						  click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE))" 
+						  color="0xffffff" chromeColor="#AAAAAA" styleName="PopUpButton"/>
+			</s:HGroup>  
+		</s:VGroup>
+		
+		
+	</s:HGroup>
+	
+	
+	
+	
+</popups:PopUpBorderContainer>

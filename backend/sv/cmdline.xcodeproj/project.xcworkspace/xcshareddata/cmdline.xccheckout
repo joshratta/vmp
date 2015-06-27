@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>592E6743-20B3-4929-A0BC-6CAE8387F005</string>
+	<key>IDESourceControlProjectName</key>
+	<string>cmdline</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>FFFCEF032B3519787A9CB17E25DC60B3F8A2309D</key>
+		<string>https://github.com/anovikov1984/VMP</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>sv/cmdline.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>FFFCEF032B3519787A9CB17E25DC60B3F8A2309D</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/anovikov1984/VMP</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>FFFCEF032B3519787A9CB17E25DC60B3F8A2309D</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>FFFCEF032B3519787A9CB17E25DC60B3F8A2309D</string>
+			<key>IDESourceControlWCCName</key>
+			<string>VMP</string>
+		</dict>
+	</array>
+</dict>
+</plist>

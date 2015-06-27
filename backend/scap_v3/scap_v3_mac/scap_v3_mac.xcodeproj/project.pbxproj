@@ -1,0 +1,377 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		053473FE1B13E37B00495953 /* scap_v3_mac in CopyFiles */ = {isa = PBXBuildFile; fileRef = 057CFF8B1B0E508900AFE81D /* scap_v3_mac */; };
+		0567082C1B188EE10080E523 /* stb_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 056708251B188EE10080E523 /* stb_image.c */; };
+		0567082D1B188EE10080E523 /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 056708271B188EE10080E523 /* stdafx.cpp */; };
+		057CFFA21B0E52C000AFE81D /* libavcodec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFA11B0E52C000AFE81D /* libavcodec.a */; };
+		057CFFA41B0E52CE00AFE81D /* libavformat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFA31B0E52CE00AFE81D /* libavformat.a */; };
+		057CFFA61B0E52DE00AFE81D /* libavutil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFA51B0E52DE00AFE81D /* libavutil.a */; };
+		057CFFA81B0E52ED00AFE81D /* libswscale.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFA71B0E52ED00AFE81D /* libswscale.a */; };
+		057CFFAA1B0E52F900AFE81D /* libswresample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFA91B0E52F900AFE81D /* libswresample.a */; };
+		057CFFAC1B0E531600AFE81D /* libmp3lame.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFAB1B0E531600AFE81D /* libmp3lame.a */; };
+		057CFFAE1B0E532000AFE81D /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFAD1B0E532000AFE81D /* libz.a */; };
+		057CFFB01B0E532C00AFE81D /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFAF1B0E532C00AFE81D /* libbz2.a */; };
+		057CFFB21B0E533900AFE81D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 057CFFB11B0E533900AFE81D /* Cocoa.framework */; };
+		058909D41B0E5C8900216BB7 /* scap_v3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 058909D31B0E5C8900216BB7 /* scap_v3.cpp */; };
+		059578781B0F97AF006EF843 /* libportaudio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 059578771B0F97AF006EF843 /* libportaudio.a */; };
+		0595787A1B0F9831006EF843 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 059578791B0F9831006EF843 /* CoreServices.framework */; };
+		0595787C1B0F9839006EF843 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0595787B1B0F9839006EF843 /* CoreFoundation.framework */; };
+		0595787E1B0F9843006EF843 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0595787D1B0F9843006EF843 /* AudioUnit.framework */; };
+		059578801B0F984A006EF843 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0595787F1B0F984A006EF843 /* AudioToolbox.framework */; };
+		059578821B0F9852006EF843 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 059578811B0F9852006EF843 /* CoreAudio.framework */; };
+		05CAFE601B1DC068004983D1 /* scl_sel.m in Sources */ = {isa = PBXBuildFile; fileRef = 05CAFE5F1B1DC068004983D1 /* scl_sel.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		057CFF891B0E508900AFE81D /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = /Applications/VideoMotionPro.app/Contents/Resources/ffmpegLib/mac;
+			dstSubfolderSpec = 0;
+			files = (
+				053473FE1B13E37B00495953 /* scap_v3_mac in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0567081F1B188EE10080E523 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audio.h; path = ../../common/audio.h; sourceTree = "<group>"; };
+		056708201B188EE10080E523 /* compatibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = compatibility.h; path = ../../common/compatibility.h; sourceTree = "<group>"; };
+		056708211B188EE10080E523 /* const.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = const.h; path = ../../common/const.h; sourceTree = "<group>"; };
+		056708221B188EE10080E523 /* log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = log.h; path = ../../common/log.h; sourceTree = "<group>"; };
+		056708231B188EE10080E523 /* pipes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pipes.h; path = ../../common/pipes.h; sourceTree = "<group>"; };
+		056708241B188EE10080E523 /* socketutils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = socketutils.h; path = ../../common/socketutils.h; sourceTree = "<group>"; };
+		056708251B188EE10080E523 /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stb_image.c; path = ../../common/stb_image.c; sourceTree = "<group>"; };
+		056708261B188EE10080E523 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_image.h; path = ../../common/stb_image.h; sourceTree = "<group>"; };
+		056708271B188EE10080E523 /* stdafx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = stdafx.cpp; path = ../../common/stdafx.cpp; sourceTree = "<group>"; };
+		056708281B188EE10080E523 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stdafx.h; path = ../../common/stdafx.h; sourceTree = "<group>"; };
+		056708291B188EE10080E523 /* targetver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = targetver.h; path = ../../common/targetver.h; sourceTree = "<group>"; };
+		0567082A1B188EE10080E523 /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = ../../common/utils.h; sourceTree = "<group>"; };
+		0567082B1B188EE10080E523 /* videoencoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = videoencoder.h; path = ../../common/videoencoder.h; sourceTree = "<group>"; };
+		057CFF8B1B0E508900AFE81D /* scap_v3_mac */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = scap_v3_mac; sourceTree = BUILT_PRODUCTS_DIR; };
+		057CFFA11B0E52C000AFE81D /* libavcodec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavcodec.a; path = ../../ffmpeg/lib/libavcodec.a; sourceTree = "<group>"; };
+		057CFFA31B0E52CE00AFE81D /* libavformat.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavformat.a; path = ../../ffmpeg/lib/libavformat.a; sourceTree = "<group>"; };
+		057CFFA51B0E52DE00AFE81D /* libavutil.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavutil.a; path = ../../ffmpeg/lib/libavutil.a; sourceTree = "<group>"; };
+		057CFFA71B0E52ED00AFE81D /* libswscale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libswscale.a; path = ../../ffmpeg/lib/libswscale.a; sourceTree = "<group>"; };
+		057CFFA91B0E52F900AFE81D /* libswresample.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libswresample.a; path = ../../ffmpeg/lib/libswresample.a; sourceTree = "<group>"; };
+		057CFFAB1B0E531600AFE81D /* libmp3lame.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmp3lame.a; path = ../../ffmpeg/lib/libmp3lame.a; sourceTree = "<group>"; };
+		057CFFAD1B0E532000AFE81D /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../../ffmpeg/lib/libz.a; sourceTree = "<group>"; };
+		057CFFAF1B0E532C00AFE81D /* libbz2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbz2.a; path = ../../ffmpeg/lib/libbz2.a; sourceTree = "<group>"; };
+		057CFFB11B0E533900AFE81D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		058909D31B0E5C8900216BB7 /* scap_v3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = scap_v3.cpp; path = ../scap_v3.cpp; sourceTree = "<group>"; };
+		058909D51B0E5C9200216BB7 /* acap_windows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = acap_windows.h; path = ../scap/acap_windows.h; sourceTree = "<group>"; };
+		058909D61B0E5C9200216BB7 /* acap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = acap.h; path = ../scap/acap.h; sourceTree = "<group>"; };
+		058909D71B0E5C9200216BB7 /* scap_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scap_mac.h; path = ../scap/scap_mac.h; sourceTree = "<group>"; };
+		058909D81B0E5C9200216BB7 /* scap_win_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scap_win_util.h; path = ../scap/scap_win_util.h; sourceTree = "<group>"; };
+		058909D91B0E5C9200216BB7 /* scap_windows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scap_windows.h; path = ../scap/scap_windows.h; sourceTree = "<group>"; };
+		058909DA1B0E5C9200216BB7 /* scap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scap.h; path = ../scap/scap.h; sourceTree = "<group>"; };
+		059578761B0F94EE006EF843 /* acap_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = acap_mac.h; path = ../scap/acap_mac.h; sourceTree = "<group>"; };
+		059578771B0F97AF006EF843 /* libportaudio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libportaudio.a; path = ../../ffmpeg/lib/libportaudio.a; sourceTree = "<group>"; };
+		059578791B0F9831006EF843 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		0595787B1B0F9839006EF843 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		0595787D1B0F9843006EF843 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
+		0595787F1B0F984A006EF843 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		059578811B0F9852006EF843 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		05BC08501B109ED600228647 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		05CAFE5F1B1DC068004983D1 /* scl_sel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = scl_sel.m; path = ../scap/scl_sel.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		057CFF881B0E508900AFE81D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				059578821B0F9852006EF843 /* CoreAudio.framework in Frameworks */,
+				059578801B0F984A006EF843 /* AudioToolbox.framework in Frameworks */,
+				0595787E1B0F9843006EF843 /* AudioUnit.framework in Frameworks */,
+				0595787C1B0F9839006EF843 /* CoreFoundation.framework in Frameworks */,
+				0595787A1B0F9831006EF843 /* CoreServices.framework in Frameworks */,
+				059578781B0F97AF006EF843 /* libportaudio.a in Frameworks */,
+				057CFFB21B0E533900AFE81D /* Cocoa.framework in Frameworks */,
+				057CFFB01B0E532C00AFE81D /* libbz2.a in Frameworks */,
+				057CFFAE1B0E532000AFE81D /* libz.a in Frameworks */,
+				057CFFAC1B0E531600AFE81D /* libmp3lame.a in Frameworks */,
+				057CFFAA1B0E52F900AFE81D /* libswresample.a in Frameworks */,
+				057CFFA81B0E52ED00AFE81D /* libswscale.a in Frameworks */,
+				057CFFA61B0E52DE00AFE81D /* libavutil.a in Frameworks */,
+				057CFFA41B0E52CE00AFE81D /* libavformat.a in Frameworks */,
+				057CFFA21B0E52C000AFE81D /* libavcodec.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		057CFF821B0E508900AFE81D = {
+			isa = PBXGroup;
+			children = (
+				05CAFE5F1B1DC068004983D1 /* scl_sel.m */,
+				0567081F1B188EE10080E523 /* audio.h */,
+				056708201B188EE10080E523 /* compatibility.h */,
+				056708211B188EE10080E523 /* const.h */,
+				056708221B188EE10080E523 /* log.h */,
+				056708231B188EE10080E523 /* pipes.h */,
+				056708241B188EE10080E523 /* socketutils.h */,
+				056708251B188EE10080E523 /* stb_image.c */,
+				056708261B188EE10080E523 /* stb_image.h */,
+				056708271B188EE10080E523 /* stdafx.cpp */,
+				056708281B188EE10080E523 /* stdafx.h */,
+				056708291B188EE10080E523 /* targetver.h */,
+				0567082A1B188EE10080E523 /* utils.h */,
+				0567082B1B188EE10080E523 /* videoencoder.h */,
+				05BC08501B109ED600228647 /* SDL2.framework */,
+				059578811B0F9852006EF843 /* CoreAudio.framework */,
+				0595787F1B0F984A006EF843 /* AudioToolbox.framework */,
+				0595787D1B0F9843006EF843 /* AudioUnit.framework */,
+				0595787B1B0F9839006EF843 /* CoreFoundation.framework */,
+				059578791B0F9831006EF843 /* CoreServices.framework */,
+				059578771B0F97AF006EF843 /* libportaudio.a */,
+				059578761B0F94EE006EF843 /* acap_mac.h */,
+				058909D51B0E5C9200216BB7 /* acap_windows.h */,
+				058909D61B0E5C9200216BB7 /* acap.h */,
+				058909D71B0E5C9200216BB7 /* scap_mac.h */,
+				058909D81B0E5C9200216BB7 /* scap_win_util.h */,
+				058909D91B0E5C9200216BB7 /* scap_windows.h */,
+				058909DA1B0E5C9200216BB7 /* scap.h */,
+				058909D31B0E5C8900216BB7 /* scap_v3.cpp */,
+				057CFFB11B0E533900AFE81D /* Cocoa.framework */,
+				057CFFAF1B0E532C00AFE81D /* libbz2.a */,
+				057CFFAD1B0E532000AFE81D /* libz.a */,
+				057CFFAB1B0E531600AFE81D /* libmp3lame.a */,
+				057CFFA91B0E52F900AFE81D /* libswresample.a */,
+				057CFFA71B0E52ED00AFE81D /* libswscale.a */,
+				057CFFA51B0E52DE00AFE81D /* libavutil.a */,
+				057CFFA31B0E52CE00AFE81D /* libavformat.a */,
+				057CFFA11B0E52C000AFE81D /* libavcodec.a */,
+				057CFF8C1B0E508900AFE81D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		057CFF8C1B0E508900AFE81D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				057CFF8B1B0E508900AFE81D /* scap_v3_mac */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		057CFF8A1B0E508900AFE81D /* scap_v3_mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 057CFF921B0E508900AFE81D /* Build configuration list for PBXNativeTarget "scap_v3_mac" */;
+			buildPhases = (
+				057CFF871B0E508900AFE81D /* Sources */,
+				057CFF881B0E508900AFE81D /* Frameworks */,
+				057CFF891B0E508900AFE81D /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = scap_v3_mac;
+			productName = scap_v3_mac;
+			productReference = 057CFF8B1B0E508900AFE81D /* scap_v3_mac */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		057CFF831B0E508900AFE81D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0630;
+				ORGANIZATIONNAME = gshah;
+				TargetAttributes = {
+					057CFF8A1B0E508900AFE81D = {
+						CreatedOnToolsVersion = 6.3.2;
+					};
+				};
+			};
+			buildConfigurationList = 057CFF861B0E508900AFE81D /* Build configuration list for PBXProject "scap_v3_mac" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 057CFF821B0E508900AFE81D;
+			productRefGroup = 057CFF8C1B0E508900AFE81D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				057CFF8A1B0E508900AFE81D /* scap_v3_mac */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		057CFF871B0E508900AFE81D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0567082D1B188EE10080E523 /* stdafx.cpp in Sources */,
+				05CAFE601B1DC068004983D1 /* scl_sel.m in Sources */,
+				058909D41B0E5C8900216BB7 /* scap_v3.cpp in Sources */,
+				0567082C1B188EE10080E523 /* stb_image.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		057CFF901B0E508900AFE81D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		057CFF911B0E508900AFE81D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		057CFF931B0E508900AFE81D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../ffmpeg/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					../../ffmpeg/lib,
+					/Users/novikovmaa/Documents/workspace/VMP/ffmpeg/lib,
+				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = ../../ffmpeg/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRELINK_LIBS = "bz2 z swscale avutil avformat swresample avfilter avdevice avcodec";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		057CFF941B0E508900AFE81D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../ffmpeg/include,
+				);
+				LIBRARY_SEARCH_PATHS = ../../ffmpeg/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRELINK_LIBS = "bz2 z swscale avutil avformat swresample avfilter avdevice avcodec";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		057CFF861B0E508900AFE81D /* Build configuration list for PBXProject "scap_v3_mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				057CFF901B0E508900AFE81D /* Debug */,
+				057CFF911B0E508900AFE81D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		057CFF921B0E508900AFE81D /* Build configuration list for PBXNativeTarget "scap_v3_mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				057CFF931B0E508900AFE81D /* Debug */,
+				057CFF941B0E508900AFE81D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 057CFF831B0E508900AFE81D /* Project object */;
+}

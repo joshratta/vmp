@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   xmlns:popups="application.view.popups.*" 
+				   initialize="bordercontainer_initializeHandler(event)"
+				   xmlns:colorpicker="application.components.colorpicker.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import application.managers.TimelineManager;
+			
+			[Bindable]
+			private var bgColor:int;
+			
+			[Bindable]
+			private var lowerThirdsDelay:Number=0;
+			
+			protected function closeHandler(save:Boolean):void
+			{
+				if(save)
+				{
+					TimelineManager.instance.bgColor=bgColor;
+					TimelineManager.instance.lowerThirdsDelay=lowerThirdsDelay;
+				}
+				
+				close();
+			}
+			
+			
+			protected function bordercontainer_initializeHandler(event:FlexEvent):void
+			{
+				bgColor=TimelineManager.instance.bgColor;
+				lowerThirdsDelay=TimelineManager.instance.lowerThirdsDelay;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VGroup left="40" right="40" top="20" bottom="20" gap="16">
+		<s:HGroup width="100%" verticalAlign="middle">
+			<s:Label styleName="ButtonBaseStyle" text="Background Color:" color="0xffffff" />
+			<colorpicker:SparkColorPicker id="mainBackGroundColorPicker" selectedColor="@{bgColor}" requireSelection="true"/>
+		</s:HGroup> 
+		<s:HGroup width="100%" verticalAlign="middle">
+			<s:Label styleName="ButtonBaseStyle" text="Lower Thirds Ending Delay (ms):" color="0xffffff" />
+			<s:NumericStepper id="endDelayNumericStepper" value="@{lowerThirdsDelay}" maximum="10000" stepSize="500"/>
+		</s:HGroup> 
+		<s:HGroup gap="12" height="46" verticalAlign="bottom">
+			<s:Button id="yesButton" label="Save" styleName="PopUpButton" buttonMode="true" width="120" 
+					  height="36" click="closeHandler(true)"/>
+			<s:Button id="noButton" label="Cancel" styleName="PopUpButton" buttonMode="true" width="120" height="36"
+					  chromeColor="0xAAAAAA" click="closeHandler(false)"/>
+		</s:HGroup>  
+	</s:VGroup>
+</popups:PopUpBorderContainer>

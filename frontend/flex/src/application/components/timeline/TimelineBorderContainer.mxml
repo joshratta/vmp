@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="utf-8"?>
+<asbc:AutoScrollingBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+								   xmlns:s="library://ns.adobe.com/flex/spark"
+								   xmlns:mx="library://ns.adobe.com/flex/mx"
+								   xmlns:asl="application.components.asl.*"
+								   xmlns:asbc="application.components.asbc.*"
+								   xmlns:components="application.components.*"
+								   xmlns:timeline="application.components.timeline.*"
+								   width="100%" height="100%" backgroundColor="#181818"
+								   borderColor="#F50202" borderVisible="false"
+								   contentBackgroundColor="#1c1c1c" maxWidth="{int.MAX_VALUE}"
+								   horizontalScrollPosition="@{timelineManager.scrollPosition}"
+								   maxHorizontalScrollPosition="{timelineManager.timelineWidth-width}"
+								   resize="autoscrollingbordercontainer_resizeHandler(event)"
+								   click="autoscrollingbordercontainer_clickHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.managers.GshahAnimationLibrary;
+			import application.managers.TimelineManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.UndoRedoManagerItem;
+			import application.managers.components.UndoRedoManagerItemType;
+			import application.view.renderers.TimeLineAssetItemRenderer;
+			
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahAsset;
+			import gshah.entities.GshahAssetType;
+			import gshah.entities.GshahSource;
+			import gshah.utils.FfmpegVideoUtils;
+			import gshah.utils.GshahAssetUtils;
+			
+			import mx.core.FlexGlobals;
+			import mx.core.IUIComponent;
+			import mx.events.DragEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.DragManager;
+			
+			
+			
+			[Bindable]
+			private var timelineManager:TimelineManager=TimelineManager.instance;
+			
+			private const TIME_CODE_LINE_HEIGHT:Number = 16;
+			
+			protected function timelineList_dragEnterHandler(event:DragEvent):void
+			{
+				trace("timelineList_dragEnterHandler -", event.target);
+				if(event.dragSource.hasFormat('itemsByIndex'))
+				{
+					DragManager.acceptDragDrop(event.target as IUIComponent);	
+				}
+			}
+			
+			protected function timelineList_dragDropHandler(event:DragEvent):void
+			{
+				dragListener=false;
+				removeEventListener(Event.ENTER_FRAME, onDragEnterFrame);
+				if(event.dragInitiator!=timelineList)
+				{
+					for each (var s:GshahSource in event.dragSource.dataForFormat('itemsByIndex')) 
+					{
+						if(s!=null)
+						{
+							var a:GshahAsset=timelineManager.addAsset(s);
+							UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.ADD,
+								[UndoRedoManager.removeAssetFunction(a)],[UndoRedoManager.addAssetFunction(a,timelineManager.dataProvider.getItemIndex(a))]));
+						}
+					}
+				}
+				
+			}
+			
+			
+			protected function autoscrollingbordercontainer_resizeHandler(event:ResizeEvent):void
+			{
+				timelineManager.containerWidth=width;
+			}
+			
+			private var dragListener:Boolean;
+			private var draggedItem:GshahAsset;
+			private var currentMouse:Point;
+			private var changeProcess:Boolean;
+			protected function timelineList_dragStartHandler(event:DragEvent):void
+			{
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				
+				dragListener=true;
+				addEventListener(Event.ENTER_FRAME, onDragEnterFrame);
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, onMainMouseUp);
+				draggedItem = timelineList.selectedItem;
+				currentMouse = new Point(stage.mouseX+horizontalScrollPosition, timelineList.mouseY);
+			}
+			private var orderChanged:Boolean;
+			
+			private function onDragEnterFrame(event:Event):void
+			{
+				guidelineUI.graphics.clear();
+				
+				if(changeProcess)
+					return;
+				var timelineStart:Number = draggedItem.timelineStart +(stage.mouseX+horizontalScrollPosition-currentMouse.x) * timelineManager.milisecondsPerPixel;
+				if(timelineStart < 0){
+					timelineStart = 0;
+				}
+				
+				orderChanged=false;
+				var dragIndex:int=timelineManager.dataProvider.getItemIndex(draggedItem);
+				
+				var r:TimeLineAssetItemRenderer=timelineList.dataGroup.getElementAt(timelineList.selectedIndex) as TimeLineAssetItemRenderer;
+				if(r!=null)
+				{
+					var newLayer:int=timelineList.mouseY/GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT;
+					if(newLayer<0)
+					{
+						newLayer=0;
+					}
+					if(!oldObject.hasOwnProperty(draggedItem.uuid))
+					{
+						oldObject[draggedItem.uuid]=new Object;
+					}
+					if(!oldObject[draggedItem.uuid].hasOwnProperty('timelineStart'))
+					{
+						oldObject[draggedItem.uuid].timelineStart=draggedItem.timelineStart;
+					}
+					draggedItem.timelineStart = timelineStart;
+					currentMouse.x = stage.mouseX+horizontalScrollPosition;
+					
+					if(newLayer!=draggedItem.layer)
+					{
+						
+						if(!oldObject.hasOwnProperty(draggedItem.uuid))
+						{
+							oldObject[draggedItem.uuid]=new Object;
+						}
+						if(!oldObject[draggedItem.uuid].hasOwnProperty('layer'))
+						{
+							oldObject[draggedItem.uuid].layer=draggedItem.layer;
+						}
+						
+						draggedItem.layer=newLayer;
+						orderChanged=true;
+					}
+					
+					var newIndex:int=0;
+					
+					if(orderChanged)
+					{
+						for each (var _a:GshahAsset in timelineManager.dataProvider) 
+						{
+							
+							
+							newLayer=Math.max(newLayer,_a.layer);
+							if(_a!=draggedItem)
+							{
+								
+								if(_a.layer==draggedItem.layer)
+								{
+									var aTimelineEnd:Number=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+									var draggedTimelineEnd:Number=draggedItem.timelineStart+GshahAssetUtils.getAssetDuration(draggedItem.parts);
+									
+									
+									if((_a.timelineStart+aTimelineEnd)/2>(timelineStart+draggedTimelineEnd)/2)
+									{
+										break;
+									}
+									
+									
+								}
+								else if(_a.layer>draggedItem.layer)
+								{
+									break;
+								}
+								newIndex++;
+								
+								
+							}
+							
+						}
+						
+						
+						if(!oldObject.hasOwnProperty('layersCount'))
+						{
+							oldObject.layersCount=timelineManager.layersCount;
+						}
+						
+						timelineManager.layersCount=0;
+						timelineManager.layersCount=newLayer+1;
+						
+						
+						if(newIndex!=dragIndex)
+						{
+							if(!oldObject.hasOwnProperty(draggedItem.uuid))
+							{
+								oldObject[draggedItem.uuid]=new Object;
+							}
+							if(!oldObject[draggedItem.uuid].hasOwnProperty('index'))
+							{
+								oldObject[draggedItem.uuid].index=dragIndex;
+							}
+							timelineManager.dataProvider.addItemAt(timelineManager.dataProvider.removeItemAt(dragIndex),newIndex);
+							timelineList.selectedIndex=newIndex;
+							timelineManager.currentIndex=newIndex;
+						}
+					}
+					
+					newIndex=timelineManager.dataProvider.getItemIndex(draggedItem);
+					
+					if(newIndex>0)
+					{
+						updateAssetTimeline(draggedItem);
+					}
+					
+					timelineStart=draggedItem.timelineStart;
+					draggedTimelineEnd=draggedItem.timelineStart+GshahAssetUtils.getAssetDuration(draggedItem.parts);
+					
+					for (var i:int = newIndex+1; i < timelineManager.dataProvider.length; i++) 
+					{
+						
+						_a=timelineManager.dataProvider.getItemAt(i) as GshahAsset;
+						if(_a.layer==draggedItem.layer)
+						{
+							aTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+							
+							if(Math.max(_a.timelineStart,timelineStart)<=Math.min(aTimelineEnd,draggedTimelineEnd))
+							{
+								
+								if(!oldObject.hasOwnProperty(_a.uuid))
+								{
+									oldObject[_a.uuid]=new Object;
+								}
+								if(!oldObject[_a.uuid].hasOwnProperty('timelineStart'))
+								{
+									oldObject[_a.uuid].timelineStart=_a.timelineStart;
+								}
+								_a.timelineStart=draggedTimelineEnd;
+								timelineStart=_a.timelineStart;
+								draggedTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+								if(changedAssets.indexOf(_a)==-1)
+								{
+									changedAssets.push(_a);
+								}
+								
+							}
+						}
+						else if(_a.layer>draggedItem.layer)
+						{
+							break;
+						}
+						
+					}
+					
+					
+				}
+				
+				drawGuideLines(draggedItem.layer,draggedItem.timelineStart,draggedItem.timelineStart+GshahAssetUtils.getAssetDuration(draggedItem.parts));
+				
+			}
+			
+			
+			
+			private function updateAssetTimeline(draggedItem:GshahAsset):void
+			{
+				var newIndex:int=timelineManager.dataProvider.getItemIndex(draggedItem);
+				if(newIndex>0)
+				{
+					var draggedTimelineEnd:Number=draggedItem.timelineStart+GshahAssetUtils.getAssetDuration(draggedItem.parts);
+					var timelineStart:Number=draggedItem.timelineStart;
+					
+					
+					var _a:GshahAsset=timelineManager.dataProvider.getItemAt(newIndex-1) as GshahAsset;
+					if(_a.layer==draggedItem.layer)
+					{
+						var aTimelineEnd:Number=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+						
+						if(Math.max(_a.timelineStart,timelineStart)<=Math.min(aTimelineEnd,draggedTimelineEnd))
+						{
+							
+							_a.timelineStart=Math.max(0,draggedItem.timelineStart-GshahAssetUtils.getAssetDuration(_a.parts));
+							if(!oldObject.hasOwnProperty(_a.uuid))
+							{
+								oldObject[_a.uuid]=new Object;
+							}
+							if(!oldObject[_a.uuid].hasOwnProperty('timelineStart'))
+							{
+								oldObject[_a.uuid].timelineStart=_a.timelineStart;
+							}
+							updateAssetTimeline(_a);
+							aTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+							draggedItem.timelineStart=Math.max(aTimelineEnd,draggedItem.timelineStart);
+							if(changedAssets.indexOf(_a)==-1)
+							{
+								changedAssets.push(_a);
+							}
+							
+							
+						}
+					}
+					
+					
+				}
+			}
+			
+			public function drawGuideLines(draggedItemLayer:int, draggedItemStart:Number, draggedItemEnd:Number):void
+			{
+				for each (var _a:GshahAsset in timelineManager.dataProvider) 
+				{
+					if((_a.layer+1)==draggedItemLayer)
+					{
+						if(isLeftGuideLine(_a,draggedItemStart,draggedItemEnd))
+						{
+							drawLeftBottomGuideLine(_a);
+						}
+						if(isRightGuideLine(_a,draggedItemStart,draggedItemEnd))
+						{
+							drawRightBottomGuideLine(_a);
+						}
+					}
+					else if((_a.layer-1)==draggedItemLayer)
+					{
+						if(isLeftGuideLine(_a,draggedItemStart,draggedItemEnd))
+						{
+							drawLeftTopGuideLine(_a);
+						}
+						if(isRightGuideLine(_a,draggedItemStart,draggedItemEnd))
+						{
+							drawRightTopGuideLine(_a);
+						}
+					}
+					else if((_a.layer-1)>draggedItemLayer)
+					{
+						break;
+					}
+				}
+			}
+			
+			private var changedAssets:Array=[];
+			private var oldObject:Object=new Object;
+			
+			protected function autoscrollingbordercontainer_clickHandler(event:MouseEvent):void
+			{
+				if(!timelineManager.cutting)
+				{
+					timelineManager.cutMainX=globalToLocal(new Point(event.stageX,event.stageY)).x;
+					GshahVideoController.instance.seek((timelineManager.cutMainX+horizontalScrollPosition)*TimelineManager.instance.milisecondsPerPixel/1000);
+				}
+				
+			}
+			
+			[Bindable]
+			public var vertScrollPos:Number;
+			
+			protected function onMainMouseUp(event:MouseEvent):void
+			{
+				removeEventListener(Event.ENTER_FRAME, onDragEnterFrame);				
+				guidelineUI.graphics.clear();
+				
+				if(dragListener)
+				{
+					dragListener=false;
+					
+					
+					changedAssets.push(timelineList.selectedItem as GshahAsset);
+					
+					var redos:Array=[];
+					var undos:Array=[];
+					if(oldObject.hasOwnProperty('layersCount'))
+					{
+						if(oldObject.layersCount!=timelineManager.layersCount)
+						{
+							undos.push(UndoRedoManager.changeLayersCount(oldObject.layersCount));
+							redos.push(UndoRedoManager.changeLayersCount(timelineManager.layersCount));
+						}
+					}
+					
+					for each (var ga:GshahAsset in changedAssets) 
+					{
+						if(ga!=null&&oldObject.hasOwnProperty(ga.uuid))
+						{
+							if(oldObject[ga.uuid].hasOwnProperty('layer'))
+							{
+								if(ga.layer!=oldObject[ga.uuid].layer)
+								{
+									undos.push(UndoRedoManager.updateAssetLayer(ga,oldObject[ga.uuid].layer));
+									redos.push(UndoRedoManager.updateAssetLayer(ga,ga.layer));
+								}
+							}
+							if(oldObject[ga.uuid].hasOwnProperty('index'))
+							{
+								if(timelineManager.dataProvider.getItemIndex(ga)!=oldObject[ga.uuid].index)
+								{
+									undos.push(UndoRedoManager.updateAssetIndex(ga,oldObject[ga.uuid].index));
+									redos.push(UndoRedoManager.updateAssetIndex(ga,timelineManager.dataProvider.getItemIndex(ga)));
+								}
+							}
+							if(oldObject[ga.uuid].hasOwnProperty('timelineStart'))
+							{
+								if(ga.timelineStart!=oldObject[ga.uuid].timelineStart)
+								{
+									undos.push(UndoRedoManager.updateAssetTimelineStart(ga,oldObject[ga.uuid].timelineStart));
+									redos.push(UndoRedoManager.updateAssetTimelineStart(ga,ga.timelineStart));
+								}
+							}
+							
+							undos.push(UndoRedoManager.updateAsset(ga));
+							redos.push(UndoRedoManager.updateAsset(ga));
+							
+							GshahVideoController.instance.addAsset(ga);
+							if(ga!=null&&ga.type==GshahAssetType.ANIMATION&&GshahAnimationLibrary.instance.isOutro(ga.source.animationId))
+							{
+								for each (var _a:GshahAsset in timelineManager.dataProvider.source) 
+								{
+									if(_a.parrentUuid==ga.uuid)
+									{
+										GshahVideoController.instance.addAsset(_a);
+										undos.push(UndoRedoManager.updateAsset(_a));
+										redos.push(UndoRedoManager.updateAsset(_a));
+									}
+								}
+							}
+							
+						}
+						
+					}
+					changedAssets=[];
+					oldObject=new Object;
+					UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.TIMELINE,undos,redos));
+					
+					if(orderChanged)
+					{
+						orderChanged=false;
+						//GshahVideoController.instance.changeLayersOrder();
+					}
+					
+				}
+				
+			}
+			
+			private static const GUIDELINE_DELTA:Number=10;
+			
+			private function isLeftGuideLine(_a:GshahAsset, draggedItemStart:Number, draggedItemEnd:Number):Boolean
+			{
+				var deltaStart:Number=(draggedItemStart-_a.timelineStart)/timelineManager.milisecondsPerPixel;
+				var deltaEnd:Number=(_a.timelineStart-draggedItemEnd)/timelineManager.milisecondsPerPixel;
+				
+				return (deltaStart>=0&&deltaStart<=GUIDELINE_DELTA)||(deltaEnd>=0&&deltaEnd<=GUIDELINE_DELTA);
+			}
+			
+			private function isRightGuideLine(_a:GshahAsset, draggedItemStart:Number, draggedItemEnd:Number):Boolean
+			{
+				var deltaStart:Number=(_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts)-draggedItemEnd)/timelineManager.milisecondsPerPixel;
+				var deltaEnd:Number=(draggedItemStart-_a.timelineStart-GshahAssetUtils.getAssetDuration(_a.parts))/timelineManager.milisecondsPerPixel;
+				
+				return (deltaStart>0&&deltaStart<=GUIDELINE_DELTA)||(deltaEnd>0&&deltaEnd<=GUIDELINE_DELTA);
+			}
+			
+			private function drawLeftBottomGuideLine(_a:GshahAsset):void
+			{
+				drawGuideLine(_a.timelineStart/timelineManager.milisecondsPerPixel,_a.layer*GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT);
+				
+			}
+			
+			private function drawLeftTopGuideLine(_a:GshahAsset):void
+			{
+				drawGuideLine(_a.timelineStart/timelineManager.milisecondsPerPixel,(_a.layer-1)*GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT);
+				
+			}
+			
+			private function drawRightBottomGuideLine(_a:GshahAsset):void
+			{
+				drawGuideLine((_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts))/timelineManager.milisecondsPerPixel,_a.layer*GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT);
+				
+			}
+			
+			private function drawRightTopGuideLine(_a:GshahAsset):void
+			{
+				drawGuideLine((_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts))/timelineManager.milisecondsPerPixel,(_a.layer-1)*GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT);
+				
+			}
+			
+			private function drawGuideLine(x:Number,y:Number):void
+			{
+				guidelineUI.graphics.beginFill(0xff0000);
+				guidelineUI.graphics.drawRect(x-1,y,2,2*GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT);
+				guidelineUI.graphics.endFill();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Rect x="{ruler.x}" width="{timelineList.width}" height="{TIME_CODE_LINE_HEIGHT}" maxWidth="{int.MAX_VALUE}">
+		<s:fill>
+			<s:SolidColor color="#0c0c0c"/>
+		</s:fill>
+	</s:Rect>
+	<s:Rect x="{ruler.x}" width="{timelineList.width}" height="{ruler.height}" top="{TIME_CODE_LINE_HEIGHT}" maxWidth="{int.MAX_VALUE}">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry ratio="0" color="#292929"/>
+				<s:GradientEntry ratio=".49" color="#292929"/>
+				<s:GradientEntry ratio="0.5" color="#202020"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	<components:Ruler id="ruler" x="{-horizontalScrollPosition}" width="{timelineList.width}" top="16" maxWidth="{int.MAX_VALUE}"
+					  height="28" pixelsPerUnit="{1000/TimelineManager.instance.milisecondsPerPixel}"/>
+	<s:List id="timelineList" x="{-horizontalScrollPosition}" top="{ruler.height+TIME_CODE_LINE_HEIGHT}"
+			width="{timelineManager.timelineWidth}" height="100%" minWidth="{width}"
+			borderVisible="false" dataProvider="{timelineManager.dataProvider}"
+			dragDrop="timelineList_dragDropHandler(event)" dragEnabled="true"
+			dragEnter="timelineList_dragEnterHandler(event)"
+			dragStart="timelineList_dragStartHandler(event)" 
+			horizontalScrollPolicy="off" maxWidth="{int.MAX_VALUE}"
+			useVirtualLayout="false"
+			initialize="{timelineList.dataGroup.maxWidth=int.MAX_VALUE;timelineList.scroller.maxWidth=int.MAX_VALUE;timelineList.scroller.skin.maxWidth=int.MAX_VALUE;}"
+			verticalScrollPolicy="off" click="event.preventDefault();event.stopImmediatePropagation();"
+			itemRenderer="application.view.renderers.TimeLineAssetItemRenderer">
+		<s:layout>
+			<s:BasicLayout id="timelineLayout" verticalScrollPosition="{vertScrollPos}"/>
+		</s:layout>
+	</s:List>
+	<s:Rect x="{ruler.x}" width="{timelineList.width}" height="2" top="{TIME_CODE_LINE_HEIGHT+ruler.height}" maxWidth="{int.MAX_VALUE}">
+		<s:fill>
+			<s:SolidColor color="#868686"/>
+		</s:fill>
+	</s:Rect>
+	<s:Rect width="{seeker.x-cutter.x}" x="{cutter.x}" height="{height}" maxWidth="{int.MAX_VALUE}">
+		<s:fill>
+			<s:SolidColor color="#000000" alpha="0.3"/>
+		</s:fill>
+	</s:Rect>
+	<mx:UIComponent id="guidelineUI" x="{-horizontalScrollPosition}" top="{ruler.height+TIME_CODE_LINE_HEIGHT}"
+					width="{timelineManager.timelineWidth}" height="100%" minWidth="{width}"/>
+	<timeline:TimelineCutter id="cutter" x="@{timelineManager.cutChildX}"
+							 cutting="@{timelineManager.cutting}" height="{height}" 
+							 timeline="{this}"/>
+	<timeline:TimelineSeeker id="seeker" currentTime="@{GshahVideoController.instance.currentTime}" 
+							 x="@{timelineManager.cutMainX}" cutter="{cutter}" 
+							 cutting="@{timelineManager.cutting}"
+							 height="{height}" timeline="{this}" scrollOffset="{seekLabel.width+33}"/>
+	<s:Label id="seekLabel" text="{FfmpegVideoUtils.convertTime((timelineManager.cutMainX+horizontalScrollPosition)*TimelineManager.instance.milisecondsPerPixel,2).replace('.',':')}"
+			 verticalAlign="bottom" styleName="ButtonBaseStyle" 
+			 color="0xffffff" x="{timelineManager.cutMainX+33}"/>
+</asbc:AutoScrollingBorderContainer>

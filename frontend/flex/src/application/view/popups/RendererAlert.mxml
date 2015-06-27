@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   maxWidth="400" minWidth="250" minHeight="120" 
+				   xmlns:popups="application.view.popups.*" >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			[Bindable]
+			public var titleText:String = "";
+			[Bindable]
+			public var messageText:String = "";
+			public var callBack:Function;
+			
+			private static var instance:RendererAlert;
+			
+			public static function show(message:String = "", title:String = "", callback:Function=null):void
+			{
+				if(instance==null)
+				{
+					instance=new RendererAlert();
+				}
+				instance.build(message,title,callback);
+				PopUpManager.addPopUp(instance, FlexGlobals.topLevelApplication as DisplayObject, true);
+				PopUpManager.centerPopUp(instance);
+				instance.visible=true;
+			}
+			private function build(message:String = "", title:String = "", callback:Function=null):void
+			{
+				titleText = title;
+				messageText = message;
+				callBack = callback;
+			}
+			protected function clickHandler(event:MouseEvent):void
+			{
+				if(callBack != null)
+					callBack(new CloseEvent(CloseEvent.CLOSE));
+				close();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup top="8" bottom="8" left="16" right="16">
+		<s:Label maxDisplayedLines="1" styleName="ButtonBaseStyle" color="#ffffff" text="{titleText}" fontSize="15"/>
+		<s:Group width="100%" height="100%">
+			<s:VGroup verticalCenter="-2" horizontalCenter="0" horizontalAlign="center" paddingBottom="10" paddingTop="10" gap="10">
+				<s:Label styleName="ButtonBaseStyle"  color="#ffffff" maxWidth="368" text="{messageText}" width="100%" textAlign="center"/>
+				<s:Button label="OK" styleName="PopUpButton" click="clickHandler(event)" width="120" height="36"/>
+			</s:VGroup>
+		</s:Group>
+	</s:VGroup>
+</popups:PopUpBorderContainer>

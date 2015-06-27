@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   xmlns:view="application.view.*"
+				   backgroundImage="{CenterBackground}"
+				   borderVisible="false" backgroundImageFillMode="repeat"
+				   resize="resizeHandler(event)"
+				   creationComplete="group_creationCompleteHandler(event)" >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import application.events.AppEvent;
+			import application.events.TimelineEvent;
+			import application.managers.HotKeyManager;
+			import application.managers.TimelineManager;
+			
+			import gshah.GshahVideoController;
+			import gshah.bg.CenterBackground;
+			import gshah.entities.GshahAsset;
+			import gshah.entities.GshahAssetType;
+			import gshah.utils.GshahAssetUtils;
+			import gshah.utils.GshahUtils;
+			
+			[Bindable]
+			private var timelineManager:TimelineManager=TimelineManager.instance;
+			
+			[Bindable]
+			private var videoController:GshahVideoController=GshahVideoController.instance;
+						
+			protected function resizeHandler(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				//timelineManager.stopIfPlaying();
+				var helper:GshahUtils=new GshahUtils;
+				var w:Number =this.width - 14;
+				//var h:Number = Math.min(this.height,VDividedBox(HDividedBox(this.parent).parent).getDividerAt(0).y) - 10;
+				var h:Number = this.height - 14;
+				
+				var sc:Number=Math.min(w/timelineManager.width,h/timelineManager.height);
+				
+				videoController.playerWidth = timelineManager.width*sc;
+				videoController.playerHeight = timelineManager.height*sc;
+				videoController.setSize();
+				if(timelineManager.resizeBox!=null)
+				{
+					setResizeComponentSize();
+				}
+				
+				
+				
+				
+			}
+			
+			protected function group_creationCompleteHandler(event:FlexEvent):void
+			{
+				videoPlayer.addElement(timelineManager.animationContainer);
+				uiGroup.addElement(videoController.previewVideo);
+				timelineManager.addEventListener(AppEvent.RESIZE_PREVIEW_ELEMENT, resizeComponent);
+				timelineManager.addEventListener( TimelineEvent.PLAYER_WILL_START, playerStartHandler);
+				
+			}
+			
+			
+			private function resizeComponent(e:AppEvent):void{
+				
+				if(timelineManager.resizeBox){
+					saveAndRemoveResizeComponent();
+				}
+				var assetIndex:int = int(e.data);
+				timelineManager.resizeBox = new ResizeComponent();
+				timelineManager.resizeBox.dragResizeArea = resizeGroup;
+				timelineManager.resizeBox.asset = GshahAsset(timelineManager.dataProvider.getItemAt(assetIndex));
+
+				setResizeComponentSize();		
+				resizeGroup.addElement(timelineManager.resizeBox);
+			}
+			
+			private function setResizeComponentSize():void
+			{
+				var videoW:Number = timelineManager.width;
+				var videoH:Number = timelineManager.height;
+				
+				timelineManager.resizeBox.width = (timelineManager.resizeBox.asset.width/videoW)*videoController.previewVideo.width;
+				timelineManager.resizeBox.height = (timelineManager.resizeBox.asset.height/videoH)*videoController.previewVideo.height;
+				
+				timelineManager.resizeBox.x = (timelineManager.resizeBox.asset.x/videoW)*videoController.previewVideo.width;
+				timelineManager.resizeBox.y =(timelineManager.resizeBox.asset.y/videoH)*videoController.previewVideo.height;
+				trace(["w="+timelineManager.resizeBox.width,"h="+timelineManager.resizeBox.height,"x="+timelineManager.resizeBox.x,"y="+timelineManager.resizeBox.y].join(' '));
+			}
+			
+			private function playerStartHandler(e:TimelineEvent):void{
+				saveAndRemoveResizeComponent();
+			}
+			private function saveAndRemoveResizeComponent():void{
+				if(timelineManager.resizeBox){
+					timelineManager.resizeBox.clean();
+					resizeGroup.removeElement(timelineManager.resizeBox);
+					timelineManager.resizeBox = null;
+				}
+			}
+			
+			
+			protected function videoPlayerUI_clickHandler(event:MouseEvent):void
+			{
+				if(event.target==videoController.previewVideo)
+				{
+					
+					var p:Point=new Point(event.localX,event.localY);
+					var previewScaleX:Number=videoController.previewVideo.width/timelineManager.width;
+					var previewScaleY:Number=videoController.previewVideo.height/timelineManager.height;
+					var cur:Number=videoController.currentTime*1000;
+					var curX:Number=timelineManager.cutMainX;
+					for each (var a:GshahAsset in timelineManager.dataProvider) 
+					{
+						if(a.visibleOnPreview&&a.type!=GshahAssetType.AUDIO&&a.timelineStart<=cur&&(a.timelineStart+GshahAssetUtils.getAssetDuration(a.parts))>=cur)
+						{							
+							var videoWidth:Number=a.width*previewScaleX;
+							var videoHeight:Number=a.height*previewScaleY;
+							var videoX:Number=Math.round(a.x*previewScaleX);
+							var videoY:Number=Math.round(a.y*previewScaleY);
+							
+							if(p.x>=videoX&&p.x<=(videoX+videoWidth)&&p.y>=videoY&&p.y<=(videoY+videoHeight))
+							{				
+								timelineManager.currentIndex=timelineManager.dataProvider.getItemIndex(a);
+								return;
+							}
+						}
+					}
+					
+				}
+			}
+
+			[Bindable]
+			private var zoomMultiplier:Number=1.05;
+			
+			
+			
+			
+			
+			protected function videoPlayer_mouseWheelHandler(event:MouseEvent):void
+			{
+				if(timelineManager.resizeBox!=null)
+				{
+					//var _scale:Number=videoController.videoScale;
+					if(event.delta > 0) 
+					{
+						/* if(_scale<1)
+						{
+						_scale*=zoomMultiplier;
+						if(_scale>1)
+						{
+						_scale=1;
+						}
+						} */
+						
+						if((timelineManager.resizeBox.width+timelineManager.resizeBox.x)<videoController.previewVideo.width)
+						{
+							timelineManager.resizeBox.width*=zoomMultiplier;
+							if((timelineManager.resizeBox.width+timelineManager.resizeBox.x)>videoController.previewVideo.width){
+								timelineManager.resizeBox.width = videoController.previewVideo.width-timelineManager.resizeBox.x;
+							}
+						}
+						if((timelineManager.resizeBox.height+timelineManager.resizeBox.y)<videoController.previewVideo.height)
+						{
+							timelineManager.resizeBox.height*=zoomMultiplier;
+							if((timelineManager.resizeBox.height+timelineManager.resizeBox.y)>videoController.previewVideo.height){
+								timelineManager.resizeBox.height = videoController.previewVideo.height-timelineManager.resizeBox.y;
+							}
+						}
+						
+					} 
+					else 
+					{
+						if(timelineManager.resizeBox.width>30)
+						{
+							timelineManager.resizeBox.width/=zoomMultiplier;
+							if (timelineManager.resizeBox.width<30) timelineManager.resizeBox.width=20;
+							
+						}
+						if(timelineManager.resizeBox.height>30)
+						{
+							timelineManager.resizeBox.height/=zoomMultiplier;
+							if (timelineManager.resizeBox.height<30) timelineManager.resizeBox.height = 20;
+						}
+						
+						/* if(_scale>0.2)
+						{
+						_scale/=zoomMultiplier;
+						if(_scale<0.2)
+						{
+						_scale=0.2;
+						}
+						} */
+					}
+					
+					if(HotKeyManager.instance.shiftKey)
+					{
+						var sc:Number=Math.min(timelineManager.resizeBox.width/timelineManager.resizeBox.asset.source.metadata.resX,timelineManager.resizeBox.height/timelineManager.resizeBox.asset.source.metadata.resY);
+						timelineManager.resizeBox.width=timelineManager.resizeBox.asset.source.metadata.resX*sc;
+						timelineManager.resizeBox.height=timelineManager.resizeBox.asset.source.metadata.resY*sc;
+					}
+					//videoController.videoScale=_scale;
+					timelineManager.resizeBox.changeAsset();
+				}
+			}
+		]]>
+	</fx:Script>
+		<s:BorderContainer id="videoPlayer" verticalCenter="0" horizontalCenter="0" width="{videoController.playerWidth+4}" click="videoPlayerUI_clickHandler(event)" height="{videoController.playerHeight+4}"
+						   backgroundColor="#000000" borderColor="#434343" borderWeight="2" mouseWheel="videoPlayer_mouseWheelHandler(event)">
+			<s:Group id="uiGroup"  width="{videoController.playerWidth}" height="{videoController.playerHeight}"/>
+			<s:Group id="resizeGroup" top="-2" left="-1" width="{videoController.playerWidth}" height="{videoController.playerHeight}"/>
+
+		</s:BorderContainer>
+	
+</s:BorderContainer>

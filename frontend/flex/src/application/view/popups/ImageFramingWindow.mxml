@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							 xmlns:s="library://ns.adobe.com/flex/spark" 
+							 xmlns:mx="library://ns.adobe.com/flex/mx" 
+							 xmlns:popups="application.view.popups.*" 
+							 xmlns:progressbar="application.components.progressbar.*" 
+							 xmlns:asl="application.components.asl.*" 
+							 xmlns:gshah="gshah.*" xmlns:view="application.view.*"
+							 initialize="titlewindow_initializeHandler(event)" 
+							 mouseUp="titlewindow_mouseUpHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahSource;
+			
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.graphics.codec.PNGEncoder;
+			import mx.utils.UIDUtil;
+			
+			import spark.components.Button;
+			
+			import sys.SystemSettings;
+			
+			private var _asset:GshahSource;
+			
+			[Bindable]
+			public function get asset():GshahSource
+			{
+				return _asset;
+			}
+			
+			public function set asset(value:GshahSource):void
+			{
+				_asset = value;
+			}
+			
+			
+			
+			protected function titlewindow_closeHandler(event:CloseEvent):void
+			{
+				if(event.detail==Alert.OK)
+				{
+					var newBitmapData:BitmapData=new BitmapData(framingBox.width,framingBox.height);
+					newBitmapData.draw(asset.preview as IBitmapDrawable,new Matrix(1,0,0,1,-framingBox.x,-framingBox.y));
+					var d:File=SystemSettings.tempFolder.resolvePath(asset.name+'_'+UIDUtil.createUID()+'.png');
+					var pngEncoder:PNGEncoder = new PNGEncoder();
+					var byteArray:ByteArray = pngEncoder.encode(newBitmapData);
+					var fs:FileStream=new FileStream;
+					fs.open(d,FileMode.WRITE);
+					fs.writeBytes(byteArray);
+					fs.close();					
+					GshahVideoController.instance.getMetadata(d.nativePath);
+					
+				}
+				
+				close();
+				
+				
+				
+				
+			}
+			
+			
+			
+			protected function titlewindow_mouseUpHandler(event:MouseEvent):void
+			{
+				preview.dispatchEvent(new MouseEvent(MouseEvent.MOUSE_UP,false));
+			}
+			
+			protected function titlewindow_initializeHandler(event:FlexEvent):void
+			{
+				maxHeight=FlexGlobals.topLevelApplication.height*0.8;
+				maxWidth=FlexGlobals.topLevelApplication.width*0.8;
+				addEventListener(CloseEvent.CLOSE,titlewindow_closeHandler);
+			}
+			
+			
+			protected function imageVScrollBar_changeHandler(event:Event):void
+			{
+				previewGroup.y=-imageVScrollBar.value;
+			}
+			
+			protected function imageHScrollBar_changeHandler(event:Event):void
+			{
+				previewGroup.x=-imageHScrollBar.value;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	<s:Rect height="100%" width="100%">                              
+		<s:stroke>
+			<s:SolidColorStroke color="#333333" weight="1"/>
+		</s:stroke>
+		<s:fill>
+			<s:LinearGradient rotation="-45">
+				<s:GradientEntry color="#777777" ratio="0" alpha=".5"/>
+				<s:GradientEntry color="#444444" ratio=".33" alpha=".5"/>
+				<s:GradientEntry color="#202120" ratio=".66" alpha=".5"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	<s:VGroup gap="0">
+		<s:Spacer height="10"/>
+		<s:HGroup gap="0">
+			<s:Spacer width="10"/>
+			<s:Group id="imageGroup" maxWidth="{maxWidth-20-imageVScrollBar.width}" maxHeight="{maxHeight-80-imageHScrollBar.height}" mask="{maskGroup}">
+				<s:Group id="previewGroup">
+					<s:Image id="preview" source="{asset.preview}"/>
+					<view:FramingComponent id="framingBox" dragResizeArea="{preview}" 
+										   width="{preview.width}" height="{preview.height}"/>
+				</s:Group>
+			</s:Group>
+			<s:VScrollBar id="imageVScrollBar" height="100%" fixedThumbSize="true"
+						  skinClass="application.skins.TimelineVScrollBarSkin"
+						  maximum="{preview.height-imageGroup.height}"
+						  change="imageVScrollBar_changeHandler(event)"/>
+			<s:Spacer width="10"/>
+		</s:HGroup>  
+		<s:HGroup gap="0"  width="{imageGroup.width+10}" paddingLeft="10">
+			<s:HScrollBar id="imageHScrollBar" width="100%"
+						  skinClass="application.skins.TimelineHScrollBarSkin"
+						  maximum="{preview.width-imageGroup.width}"
+						  change="imageHScrollBar_changeHandler(event)"/>
+		</s:HGroup>
+		
+		<s:Spacer height="10"/>
+		
+		<s:HGroup width="100%" horizontalAlign="right">
+			<s:Button id="addAssetButton" 
+					  label="Add New Asset"
+					  fontSize="24" height="100%"
+					  click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE,false,false,Alert.OK))" 
+					  color="0xffffff" chromeColor="#FF3B42" skinClass="application.skins.IconDisplayButtonSkin"/>
+			<s:Button id="cancelButton" label="Cancel" fontSize="24" height="100%"
+					  click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE))" 
+					  color="0xffffff" chromeColor="#292929" skinClass="application.skins.IconDisplayButtonSkin"/>
+		</s:HGroup>  
+	</s:VGroup>
+	<s:Group id="maskGroup" width="{width-10-imageVScrollBar.width}" height="{height-60-imageHScrollBar.height}" 
+			 visible="false" includeInLayout="false">
+		<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor color="0xffffff"/>
+			</s:fill>
+		</s:Rect>
+	</s:Group>
+	
+</popups:PopUpBorderContainer>

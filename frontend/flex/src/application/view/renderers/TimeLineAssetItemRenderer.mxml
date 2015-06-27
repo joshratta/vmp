@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="false"
+				y="{asset.layer*GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT}"
+				height="{GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT}"
+				mouseDown="itemrenderer_clickHandler(event)"
+				xmlns:timeline="application.components.timeline.*" 
+				xmlns:components="application.components.*"
+				toolTip="{itemIndex}"
+				x="{asset.timelineStart/timelineManager.milisecondsPerPixel-resizeXDelta}"
+				mask="{maskGroup}" maxWidth="{int.MAX_VALUE}" 
+				width="{resizeWidthDelta+GshahAssetUtils.getPreviewGroupWidth(asset.parts,timelineManager.milisecondsPerPixel)/* +(asset.type==GshahAssetType.ANIMATION?(GshahAnimationLibrary.instance.isLowerThird(asset.source.animationId)?(timelineManager.lowerThirdsDelay/timelineManager.milisecondsPerPixel):0):0) */}" >
+	<fx:Script>
+		<![CDATA[
+			import application.components.timeline.TimelineBorderContainer;
+			import application.managers.GshahAnimationLibrary;
+			import application.managers.TimelineManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.UndoRedoManagerItem;
+			import application.managers.components.UndoRedoManagerItemType;
+			
+			import gshah.GshahVideoController;
+			import gshah.bg.CenterBackground;
+			import gshah.entities.GshahAsset;
+			import gshah.entities.GshahAssetType;
+			import gshah.utils.GshahAssetUtils;
+			
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			
+			[Bindable]
+			public var asset:GshahAsset;
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				asset=value as GshahAsset;
+			}
+			
+			protected function itemrenderer_clickHandler(event:MouseEvent):void
+			{
+				timelineManager.currentIndex=itemIndex;
+				
+			}
+			
+			[Bindable]
+			private var timelineManager:TimelineManager=TimelineManager.instance;
+			
+			private var changedAssets:Array=[];
+			
+			private var _ownerGroup:TimelineBorderContainer;
+			private function get ownerGroup():TimelineBorderContainer
+			{
+				if(_ownerGroup==null)
+				{
+					var _owner:UIComponent=this.owner as UIComponent;
+					while(!(_owner is TimelineBorderContainer))
+					{
+						_owner=_owner.owner as UIComponent;
+					}
+					_ownerGroup=_owner as TimelineBorderContainer;
+				}
+				
+				return _ownerGroup;
+			}
+			
+			protected function resizeButton_resizeStartHandler(event:Event):void
+			{
+				resizeX=ownerGroup.timelineList.mouseX;
+				addEventListener(Event.ENTER_FRAME, resizeButton_enterFrameHandler);	
+			}
+			private var resizeX:Number;
+			protected function resizeButton_enterFrameHandler(event:Event):void
+			{
+				ownerGroup.guidelineUI.graphics.clear();
+				
+				timelineManager.resizeWidth=ownerGroup.timelineList.mouseX+100;
+				
+				if(rightResizeButton.resizing)
+				{
+					resizeWidthDelta=ownerGroup.timelineList.mouseX-resizeX;
+					
+				}
+				else if(leftResizeButton.resizing)
+				{
+					resizeWidthDelta=resizeX-ownerGroup.timelineList.mouseX;
+					resizeXDelta=resizeWidthDelta;
+				}
+				
+				var newIndex:int=timelineManager.dataProvider.getItemIndex(asset);
+				var assetTimeLineStart:Number=asset.timelineStart-resizeXDelta*timelineManager.milisecondsPerPixel;
+				var assetTimelineEnd:Number=assetTimeLineStart+GshahAssetUtils.getAssetDuration([{s:0,e:(asset.parts[0].e+resizeWidthDelta*timelineManager.milisecondsPerPixel)}]);
+				
+				for (var i:int = newIndex+1; i < timelineManager.dataProvider.length; i++) 
+				{
+					
+					var _a:GshahAsset=timelineManager.dataProvider.getItemAt(i) as GshahAsset;
+					if(_a.layer==asset.layer)
+					{
+						var aTimelineEnd:Number=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+						
+						if(Math.max(_a.timelineStart,assetTimeLineStart)<=Math.min(aTimelineEnd,assetTimelineEnd))
+						{
+							
+							if((_a.timelineStart+aTimelineEnd)/2>(assetTimeLineStart+assetTimelineEnd)/2)
+							{
+								if(!oldObject.hasOwnProperty(_a.uuid))
+								{
+									oldObject[_a.uuid]=new Object;
+								}
+								if(!oldObject[_a.uuid].hasOwnProperty('timelineStart'))
+								{
+									oldObject[_a.uuid].timelineStart=_a.timelineStart;
+								}
+								_a.timelineStart=assetTimelineEnd;
+								assetTimeLineStart=_a.timelineStart;
+								assetTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+								if(changedAssets.indexOf(_a)==-1)
+								{
+									changedAssets.push(_a);
+								}
+							}
+							else if(_a.layer>asset.layer)
+							{
+								break;
+							}
+						}
+					}
+					
+				}
+				if(newIndex>0)
+				{
+					
+					assetTimeLineStart=asset.timelineStart-resizeXDelta*timelineManager.milisecondsPerPixel;
+					assetTimelineEnd=assetTimeLineStart+GshahAssetUtils.getAssetDuration([{s:0,e:(asset.parts[0].e+resizeWidthDelta*timelineManager.milisecondsPerPixel)}]);
+					
+					
+					
+					_a=timelineManager.dataProvider.getItemAt(newIndex-1) as GshahAsset;
+					if(_a.layer==asset.layer)
+					{
+						var newTimelineStart:Number=assetTimeLineStart-GshahAssetUtils.getAssetDuration(_a.parts);
+						
+						aTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+						
+						if(Math.max(_a.timelineStart,assetTimeLineStart)<=Math.min(aTimelineEnd,assetTimelineEnd))
+						{
+							
+							if((_a.timelineStart+aTimelineEnd)/2<=(assetTimeLineStart+assetTimelineEnd)/2)
+							{
+								if(!oldObject.hasOwnProperty(_a.uuid))
+								{
+									oldObject[_a.uuid]=new Object;
+								}
+								if(!oldObject[_a.uuid].hasOwnProperty('timelineStart'))
+								{
+									oldObject[_a.uuid].timelineStart=_a.timelineStart;
+								}
+								_a.timelineStart=Math.max(0,assetTimeLineStart-GshahAssetUtils.getAssetDuration(_a.parts));
+								updateAssetTimeline(_a);
+								aTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+								
+								resizeXDelta+=(newTimelineStart-_a.timelineStart)/timelineManager.milisecondsPerPixel;
+								if(leftResizeButton.resizing)
+								{
+									resizeWidthDelta+=(newTimelineStart-_a.timelineStart)/timelineManager.milisecondsPerPixel;
+								}
+								
+								if(changedAssets.indexOf(_a)==-1)
+								{
+									changedAssets.push(_a);
+								}
+							}
+							
+						}
+					}
+					
+					
+					
+				}
+				
+				
+				
+				
+				
+				if(previewGroup.dataGroup.getElementAt(0)!=null)
+				{
+					previewGroup.dataGroup.getElementAt(0).dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
+				}
+				ownerGroup.drawGuideLines(asset.layer,asset.timelineStart-resizeXDelta*timelineManager.milisecondsPerPixel,asset.timelineStart-resizeXDelta*timelineManager.milisecondsPerPixel+GshahAssetUtils.getAssetDuration([{s:0,e:(asset.parts[0].e+resizeWidthDelta*timelineManager.milisecondsPerPixel)}]));
+				
+			}
+			
+			private var oldObject:Object=new Object;
+			private function updateAssetTimeline(draggedItem:GshahAsset):void
+			{
+				var newIndex:int=timelineManager.dataProvider.getItemIndex(draggedItem);
+				if(newIndex>0)
+				{
+					var draggedTimelineEnd:Number=draggedItem.timelineStart+GshahAssetUtils.getAssetDuration(draggedItem.parts);
+					var timelineStart:Number=draggedItem.timelineStart;
+					
+					
+					var _a:GshahAsset=timelineManager.dataProvider.getItemAt(newIndex-1) as GshahAsset;
+					if(_a.layer==draggedItem.layer)
+					{
+						var aTimelineEnd:Number=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+						
+						if(Math.max(_a.timelineStart,timelineStart)<=Math.min(aTimelineEnd,draggedTimelineEnd))
+						{
+							
+							if((_a.timelineStart+aTimelineEnd)/2<=(timelineStart+draggedTimelineEnd)/2)
+							{
+								if(!oldObject.hasOwnProperty(_a.uuid))
+								{
+									oldObject[_a.uuid]=new Object;
+								}
+								if(!oldObject[_a.uuid].hasOwnProperty('timelineStart'))
+								{
+									oldObject[_a.uuid].timelineStart=_a.timelineStart;
+								}
+								_a.timelineStart=Math.max(0,draggedItem.timelineStart-GshahAssetUtils.getAssetDuration(_a.parts));
+								updateAssetTimeline(_a);
+								aTimelineEnd=_a.timelineStart+GshahAssetUtils.getAssetDuration(_a.parts);
+								draggedItem.timelineStart=Math.max(aTimelineEnd,draggedItem.timelineStart);
+								if(changedAssets.indexOf(_a)==-1)
+								{
+									changedAssets.push(_a);
+								}
+							}
+							
+						}
+					}
+					
+					
+				}
+			}
+			
+			[Bindable]
+			private var resizeWidthDelta:Number=0;
+			[Bindable]
+			private var resizeXDelta:Number=0;
+			
+			protected function resizeButton_resizeEndHandler(event:Event):void
+			{
+				ownerGroup.guidelineUI.graphics.clear();
+
+				removeEventListener(Event.ENTER_FRAME, resizeButton_enterFrameHandler);	
+				if(asset!=null)
+				{
+					var redos:Array=[];
+					var undos:Array=[];
+					
+					if(!oldObject.hasOwnProperty(asset.uuid))
+					{
+						oldObject[asset.uuid]=new Object;
+					}
+					if(!oldObject[asset.uuid].hasOwnProperty('timelineStart'))
+					{
+						oldObject[asset.uuid].timelineStart=asset.timelineStart;
+					}
+					
+					asset.timelineStart=asset.timelineStart-resizeXDelta*timelineManager.milisecondsPerPixel;
+					
+					undos.push(UndoRedoManager.updateAssetParts(asset,asset.parts));
+					undos.push(UndoRedoManager.updateAssetRenderer(asset,List(owner)));
+
+					asset.parts=[{s:0,e:(asset.parts[0].e+resizeWidthDelta*timelineManager.milisecondsPerPixel)}];
+					
+					redos.push(UndoRedoManager.updateAssetParts(asset,asset.parts));
+					redos.push(UndoRedoManager.updateAssetRenderer(asset,List(owner)));
+
+
+					changedAssets.push(asset);
+					
+					
+					
+					for each (var ga:GshahAsset in changedAssets) 
+					{
+						if(ga!=null&&oldObject.hasOwnProperty(ga.uuid))
+						{
+							if(oldObject[ga.uuid].hasOwnProperty('timelineStart'))
+							{
+								if(ga.timelineStart!=oldObject[ga.uuid].timelineStart)
+								{
+									undos.push(UndoRedoManager.updateAssetTimelineStart(ga,oldObject[ga.uuid].timelineStart));
+									redos.push(UndoRedoManager.updateAssetTimelineStart(ga,ga.timelineStart));
+								}
+							}
+							
+							GshahVideoController.instance.addAsset(ga);
+							
+							undos.push(UndoRedoManager.updateAsset(ga));
+							redos.push(UndoRedoManager.updateAsset(ga));
+							
+							if(ga!=null&&ga.type==GshahAssetType.ANIMATION&&GshahAnimationLibrary.instance.isOutro(ga.source.animationId))
+							{
+								for each (var _a:GshahAsset in timelineManager.dataProvider.source) 
+								{
+									if(_a.parrentUuid==ga.uuid)
+									{
+										GshahVideoController.instance.addAsset(_a);
+										
+										undos.push(UndoRedoManager.updateAsset(_a));
+										redos.push(UndoRedoManager.updateAsset(_a));
+									}
+								}
+							}
+						}
+					}
+					changedAssets=[];
+					oldObject=new Object;
+					UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.TIMELINE,undos,redos));
+
+					
+				}
+				timelineManager.resizeWidth=0;
+				resizeWidthDelta=0;
+				resizeXDelta=0;
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<s:BorderContainer left="0" right="0" maxWidth="{int.MAX_VALUE}" backgroundImage="{CenterBackground}" backgroundImageFillMode="repeat" 
+					   borderVisible="false" top="0" bottom="0" height="100%">
+		<s:Group x="{asset.timelineStart/timelineManager.milisecondsPerPixel-x-resizeXDelta}" mask="{maskGroup}" height="100%"  maxWidth="{int.MAX_VALUE}" 
+				 width="{resizeWidthDelta+GshahAssetUtils.getPreviewGroupWidth(asset.parts,timelineManager.milisecondsPerPixel)/* +(asset.type==GshahAssetType.ANIMATION?(GshahAnimationLibrary.instance.isLowerThird(asset.source.animationId)?(timelineManager.lowerThirdsDelay/timelineManager.milisecondsPerPixel):0):0) */}" >
+			<s:Rect maxWidth="{int.MAX_VALUE}" left="0" right="0" top="0" bottom="0" radiusX="10">
+				<s:fill>
+					<s:SolidColor color="{timelineManager.currentIndex==itemIndex?0x2d5f81:0x525252}"/>
+				</s:fill>
+			</s:Rect>
+			<s:List id="previewGroup" maxWidth="{int.MAX_VALUE}" dataProvider="{asset.timeline}" verticalScrollPolicy="off" horizontalScrollPolicy="off"
+					left="0" right="0" minWidth="0" contentBackgroundAlpha="0" borderVisible="false" alpha="{timelineManager.currentIndex==itemIndex?1:0.7}"
+					top="0" bottom="0" itemRenderer="application.view.renderers.TimelineBitmapDataItemRenderer"
+					initialize="{previewGroup.dataGroup.maxWidth=int.MAX_VALUE;previewGroup.scroller.maxWidth=int.MAX_VALUE;previewGroup.scroller.skin.maxWidth=int.MAX_VALUE;}">
+				<s:layout>
+					<s:HorizontalLayout paddingTop="0" paddingBottom="0" paddingLeft="0" paddingRight="0" gap="0"  
+										horizontalAlign="left" verticalAlign="top"/>
+				</s:layout>
+			</s:List>
+			<timeline:TimelineFadeGroup left="0" maxWidth="{int.MAX_VALUE}"  width="{asset.fadeIn/timelineManager.milisecondsPerPixel}"
+										label="Fade In" top="0" bottom="0" color="0xffffff"/>
+			<timeline:TimelineFadeGroup right="0" maxWidth="{int.MAX_VALUE}" width="{asset.fadeOut/timelineManager.milisecondsPerPixel}"
+										label="Fade out" top="0" bottom="0" color="0xffffff"/>
+			<components:VerticalResizeLine id="leftResizeButton"
+										   left="0" visible="{asset.type==GshahAssetType.IMAGE||asset.type==GshahAssetType.TEXT}"
+										   resizeStart="resizeButton_resizeStartHandler(event)" resizeEnd="resizeButton_resizeEndHandler(event)"/>
+			<components:VerticalResizeLine id="rightResizeButton"
+										   right="0" visible="{asset.type==GshahAssetType.IMAGE||asset.type==GshahAssetType.TEXT}"
+										   resizeStart="resizeButton_resizeStartHandler(event)" resizeEnd="resizeButton_resizeEndHandler(event)"/>
+			<s:Group id="maskGroup" left="0" right="0" top="0" bottom="0" visible="false" maxWidth="{int.MAX_VALUE}" >
+				<s:Rect left="0" right="0" top="0" bottom="0" radiusX="10"  maxWidth="{int.MAX_VALUE}">
+					<s:fill>
+						<s:SolidColor color="0xffffff"/>
+					</s:fill>
+				</s:Rect>
+			</s:Group>
+		</s:Group>  
+	</s:BorderContainer>
+	
+</s:ItemRenderer>

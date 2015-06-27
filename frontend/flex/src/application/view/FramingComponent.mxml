@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   backgroundAlpha="0.05" borderColor="#0CF1F9" 
+				   creationComplete="creationCompleteHandler(event)"
+				   borderWeight="3" xmlns:view="application.view.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import spark.components.Image;
+			
+			import application.components.ResizeButton;
+			
+			import gshah.entities.GshahAsset;
+			
+			private var _asset:GshahAsset;
+			
+			private var over:Boolean  =false;
+			private var drag:Boolean = false;
+			private var resize:Boolean = false;
+			private var resizeX:Number;
+			private var resizeY:Number;
+			private var buttonMouseX:Number;
+			private var buttonMouseY:Number;
+			
+			public var dragResizeArea:Image;
+			
+			private var resizeButtons:Array;
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				resizeButtons=[];
+				
+				for (var i:int = 1; i < 4; i++) 
+				{
+					for (var j:int = 1; j < 4; j++) 
+					{
+						if(i!=2||j!=2)
+						{
+							var _rb:ResizeButton=new ResizeButton;
+							if(i==1)
+							{
+								_rb.left=-_rb.width/2;
+							}
+							else if(i==3)
+							{
+								_rb.right=-_rb.width/2;
+							}
+							else
+							{
+								_rb.horizontalCenter=0;
+							}
+							if(j==1)
+							{
+								_rb.top=-_rb.height/2;
+							}
+							else if(j==3)
+							{
+								_rb.bottom=-_rb.height/2;
+							}
+							else
+							{
+								_rb.verticalCenter=0;
+							}
+							resizeButtons.push(_rb);
+							addElement(_rb);
+						}
+					}
+					
+				}
+				
+				
+				
+				preview.addEventListener(MouseEvent.MOUSE_OVER, mouseOverHandler);
+				preview.addEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler);
+
+				preview.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+				for each (var rB:ResizeButton in resizeButtons) 
+				{
+					rB.addEventListener(MouseEvent.MOUSE_DOWN, resizeDown);
+					
+				}
+				dragResizeArea.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+				dragResizeArea.addEventListener(MouseEvent.MOUSE_MOVE, timeline_mouseMoveHandler);
+				this.addEventListener(MouseEvent.MOUSE_MOVE, timeline_mouseMoveHandler);
+
+				addEventListener(Event.ENTER_FRAME, enterFrameHandler);
+			}
+			
+			
+			private var currentButton:ResizeButton;
+			protected function resizeDown(event:MouseEvent):void
+			{
+				currentButton=event.currentTarget as ResizeButton;
+				over = true;
+				resize = true;
+				var resizePoint:Point=dragResizeArea.globalToLocal(new Point(event.stageX,event.stageY));
+				resizeX = resizePoint.x-5;
+				resizeY = resizePoint.y-5;
+				var buttonPoint:Point=currentButton.globalToLocal(new Point(event.stageX,event.stageY));
+				buttonMouseX = buttonPoint.x;
+				buttonMouseY = buttonPoint.y;
+			}
+			
+			protected function mouseDownHandler(event:MouseEvent):void
+			{
+				currentButton=null;
+				drag=true;
+				over = true;
+				
+				this.startDrag(false, new Rectangle(0, 0, dragResizeArea.width-this.width, dragResizeArea.height-this.height));
+				
+				
+			}
+			
+			protected function timeline_mouseMoveHandler(event:MouseEvent):void
+			{
+				
+				if (!drag){
+					
+				}
+				if(resize){
+					var resizePoint:Point=dragResizeArea.globalToLocal(new Point(event.stageX,event.stageY));
+					resizeX = resizePoint.x-5;
+					resizeY = resizePoint.y-5;
+					
+					trace(resizeX , resizeX , this.x, this.y);
+				}
+				event.updateAfterEvent();
+				
+			}		
+			
+			protected function mouseOutHandler(event:MouseEvent):void
+			{
+				drag = false;
+				over=false;
+			}
+			protected function mouseUpHandler(event:MouseEvent):void
+			{
+				
+				drag = false;
+				resize = false;
+				
+			}
+			
+			protected function mouseOverHandler(event:MouseEvent):void
+			{
+				//over=true;
+			}
+			
+			
+			protected function enterFrameHandler(event:Event):void
+			{
+				if (!drag || !over){
+					this.stopDrag();
+				}else{
+					
+				}
+				
+				if(resize){
+					var w:Number;
+					var h:Number;
+					if(currentButton.bottom!=null)
+					{
+						h =  resizeY+currentButton.height/2-buttonMouseY-y+6;
+					}
+					else if(currentButton.top!=null)
+					{
+						var _y:Number=Math.max(resizeY-buttonMouseY+currentButton.height/2,0);
+						h = height+y-_y;
+						this.y=_y;
+						
+					}
+					else
+					{
+						h=height;
+					}	
+					if(currentButton.left!=null)
+					{
+						var _x:Number=Math.max(resizeX-buttonMouseX+currentButton.width/2,0);
+						w =  width+x-_x;
+						this.x=_x;
+					}
+					else if(currentButton.right!=null)
+					{
+						w =  resizeX+currentButton.width/2-buttonMouseX-x+6;
+					}
+					else
+					{
+						w=width;
+					}
+					
+					if (w<30) w=20;
+					if (h<30) h = 20;
+					if((w+this.x)>dragResizeArea.width){
+						w = dragResizeArea.width-this.x;
+					}
+					if((h+this.y)>dragResizeArea.height){
+						h = dragResizeArea.height-this.y;
+					}
+					this.width =w;
+					this.height =h;
+				}else{
+					
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:BorderContainer id="preview" width="100%" height="100%" 
+					   backgroundColor="0x000000" borderVisible="false" backgroundAlpha="0.5"/>
+	
+</s:BorderContainer>

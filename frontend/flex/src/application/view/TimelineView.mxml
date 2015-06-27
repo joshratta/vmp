@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   width="100%" height="100%" backgroundColor="#090909"
+				   contentBackgroundColor="#090909" borderVisible="false"
+				   xmlns:asl="application.components.asl.*" 
+				   xmlns:asbc="application.components.asbc.*" 
+				   xmlns:components="application.components.*" 
+				   xmlns:timeline="application.components.timeline.*"
+				   initialize="bordercontainer_initializeHandler(event)"
+				   mouseWheel="bordercontainer_mouseWheelHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			import application.managers.TimelineManager;
+			
+			import gshah.GshahVideoController;
+			import gshah.icons.Back1SecondIcon;
+			import gshah.icons.Forward1SecondIcon;
+			import gshah.icons.PlayIcon;
+			import gshah.icons.ToEndIcon;
+			import gshah.icons.ToStartIcon;
+			import gshah.utils.GshahAssetUtils;
+			
+			[Bindable]
+			private var timelineManager:TimelineManager=TimelineManager.instance;
+			
+			[Bindable]
+			private var videoController:GshahVideoController=GshahVideoController.instance;
+			
+			private var _scaleIndex:int=1;
+			private const TIMELINE_BUTTONS_WIDTH_MIDDLE:Number = 36;
+			private const TIMELINE_BUTTONS_WIDTH_BIG:Number = 40;
+			private const TIMELINE_BUTTONS_WIDTH_LITTLE:Number = 32;
+			public static const TIMELINE_LEFT:Number = 55;
+			
+			[Bindable]
+			public function get scaleIndex():int
+			{
+				return _scaleIndex;
+			}
+			
+			public function set scaleIndex(value:int):void
+			{
+				_scaleIndex = value;
+				timelineManager.milisecondsPerPixel=TimelineManager.scaleAray[_scaleIndex];
+				var _itemRender:IFactory=timelineBorderContainer.timelineList.itemRenderer;
+				timelineBorderContainer.timelineList.itemRenderer=null;
+				timelineBorderContainer.timelineList.itemRenderer=_itemRender;
+				timelineBorderContainer.seeker.resetCurrentTime();
+			}
+			
+			
+			protected function playButton_clickHandler(event:MouseEvent):void
+			{
+				videoController.toogle();
+			}
+			
+			protected function stopButton_clickHandler(event:MouseEvent):void
+			{
+				videoController.stop();
+
+			}
+			
+			protected function forward1SecondButton_clickHandler(event:MouseEvent):void
+			{
+				videoController.seek(videoController.currentTime+1);
+				
+			}
+			
+			protected function toStartButton_clickHandler(event:MouseEvent):void
+			{
+				videoController.seek(0);
+			}
+			
+			protected function back1SecondButton_clickHandler(event:MouseEvent):void
+			{
+				videoController.seek(videoController.currentTime-1);
+
+			}
+			
+			protected function toEndButton_clickHandler(event:MouseEvent):void
+			{
+				videoController.seek(videoController.duration-0.5);
+			}
+			
+			[Bindable]
+			private var pauseIcon:BitmapData;
+			protected function bordercontainer_initializeHandler(event:FlexEvent):void
+			{
+				var pauseUI:UIComponent=new UIComponent;
+				pauseUI.graphics.beginFill(0xffffff);
+				pauseUI.graphics.drawRect(0,0,5,20);
+				pauseUI.graphics.drawRect(10,0,5,20);
+				pauseUI.graphics.endFill();
+				pauseIcon=new BitmapData(15,20,true,0xffffff);
+				pauseIcon.draw(pauseUI);
+			}
+			
+			
+			[Bindable]
+			private var vertScrollPos:Number=0;
+			
+			protected function bordercontainer_mouseWheelHandler(event:MouseEvent):void
+			{
+				/* if(event.delta > 0) 
+				{
+					if(scaleIndex<(TimelineManager.scaleAray.length-1))
+					{
+						scaleIndex++;
+					}
+				}
+				else if(event.delta < 0)
+				{
+					if(scaleIndex>0)
+					{
+						scaleIndex--;
+					}
+				} */
+				vertScrollPos-=event.delta;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	
+	<s:HGroup id="buttonsGroup" left="12" height="44" gap="0">
+		<s:Button id="back1SecondButton" click="back1SecondButton_clickHandler(event)"
+				  height="100%" width="{TIMELINE_BUTTONS_WIDTH_LITTLE}" icon="{Back1SecondIcon}" styleName="TimelineControls" />
+		<s:Button id="forward1SecondButton" click="forward1SecondButton_clickHandler(event)"
+				  height="100%" width="{TIMELINE_BUTTONS_WIDTH_LITTLE}" icon="{Forward1SecondIcon}"  styleName="TimelineControls" />
+		<s:Button id="playButton" click="playButton_clickHandler(event)" 
+				  chromeColor="0x000000" height="100%" width="{TIMELINE_BUTTONS_WIDTH_MIDDLE}" icon="{videoController.paused?PlayIcon:pauseIcon}" styleName="TimelineControls" />
+		<s:Button id="stopButton" click="stopButton_clickHandler(event)" 
+				  height="100%" width="{TIMELINE_BUTTONS_WIDTH_LITTLE}" icon="{new BitmapData(16,16,false,0xffffff)}"  styleName="TimelineControls"/>
+		<s:Button id="toStartButton" click="toStartButton_clickHandler(event)"
+				  height="100%" width="{TIMELINE_BUTTONS_WIDTH_BIG}" icon="{ToStartIcon}" styleName="TimelineControls" />
+		<s:Button id="toEndButton" click="toEndButton_clickHandler(event)"
+				  chromeColor="0x000000" height="100%" width="{TIMELINE_BUTTONS_WIDTH_BIG}" icon="{ToEndIcon}" styleName="TimelineControls" />
+		
+	</s:HGroup>  
+	<s:VGroup  gap="0" left="{TIMELINE_LEFT}" top="{buttonsGroup.height}" right="0" bottom="0">
+		<s:HGroup gap="0" width="100%" height="100%">
+			<timeline:TimelineBorderContainer id="timelineBorderContainer" 
+											  borderVisible="false" vertScrollPos="{vertScrollPos}"/>
+			<s:VGroup height="100%">
+				<s:Spacer height="{timelineBorderContainer.ruler.y+timelineBorderContainer.ruler.height-6}"/>
+				<s:VScrollBar id="timelineVScrolBar" height="100%" fixedThumbSize="true"
+							  maximum="{GshahAssetUtils.TIMELINE_PREVIEW_DEFAULT_HEIGHT*timelineManager.layersCount-timelineBorderContainer.timelineList.height}" 
+							  value="@{vertScrollPos}" skinClass="application.skins.TimelineVScrollBarSkin"/>
+				
+			</s:VGroup>
+		</s:HGroup>
+		<s:HScrollBar id="timelineHScrolBar" width="100%"
+					  maximum="{timelineBorderContainer.maxHorizontalScrollPosition}" 
+					  value="@{timelineBorderContainer.horizontalScrollPosition}" skinClass="application.skins.TimelineHScrollBarSkin"/>
+	</s:VGroup>  
+	<s:BorderContainer top="{buttonsGroup.height}" width="{TIMELINE_LEFT}" height="100%" backgroundColor="#212021"
+					   borderVisible="false" contentBackgroundColor="#212021" depth="2">
+		<s:Rect width="100%" height="26">
+			<s:fill>
+				<s:SolidColor color="#0c0c0c"/>
+			</s:fill>
+		</s:Rect>
+		<s:Rect width="100%" height="28" topLeftRadiusX="10" topLeftRadiusY="10" top="16">
+			<s:fill>
+				<s:LinearGradient rotation="90">
+					<s:GradientEntry ratio="0" color="#292929"/>
+					<s:GradientEntry ratio=".49" color="#292929"/>
+					<s:GradientEntry ratio="0.5" color="#202020"/>
+				</s:LinearGradient>
+			</s:fill>
+		</s:Rect>
+		<s:List id="iconsetList" width="{TIMELINE_LEFT}" bottom="15" top="44" borderVisible="false" borderColor="#FF0000"
+				dataProvider="{new ArrayCollection(new Array(timelineManager.layersCount))}" itemRenderer="application.view.renderers.TimelineIconset"
+				verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<s:layout>
+				<s:VerticalLayout paddingTop="0" paddingBottom="0" paddingLeft="0" paddingRight="0" gap="0" horizontalAlign="center" 
+								  verticalAlign="top" verticalScrollPosition="{vertScrollPos}"/>
+			</s:layout>
+		</s:List>
+		<s:Rect top="44" width="100%" height="2">
+			<s:fill>
+				<s:SolidColor color="#868686"/>
+			</s:fill>
+		</s:Rect>
+	</s:BorderContainer>
+</s:BorderContainer>

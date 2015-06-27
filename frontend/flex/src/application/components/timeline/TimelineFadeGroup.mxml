@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 alpha="0.6">
+	<fx:Script>
+		<![CDATA[
+			
+			
+			[Bindable]
+			public var label:String;
+		]]>
+	</fx:Script>
+	<s:Rect left="0" right="0" top="0" bottom="0" radiusX="10">
+		<s:fill>
+			<s:SolidColor color="#18848c"/>
+		</s:fill>
+	</s:Rect>
+	<s:RichText text="{label}" width="100%" textAlign="center" verticalAlign="middle" verticalCenter="0" horizontalCenter="0"/>
+</s:Group>

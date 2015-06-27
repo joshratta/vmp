@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   backgroundAlpha="0.05" borderColor="#bebfbf" 
+				   creationComplete="creationCompleteHandler(event)"
+				   borderWeight="{borderWeight}" xmlns:view="application.view.*" 
+				   blendMode="layer">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import spark.components.Group;
+			
+			import application.components.ResizeButton;
+			import application.managers.HotKeyManager;
+			import application.managers.TimelineManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.UndoRedoManagerItem;
+			import application.managers.components.UndoRedoManagerItemType;
+			
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahAsset;
+			
+			public var asset:GshahAsset;
+			private var videoController:GshahVideoController=GshahVideoController.instance;
+			
+			private var timelineManager:TimelineManager = TimelineManager.instance;
+			private var over:Boolean  =false;
+			private var drag:Boolean = false;
+			private var resize:Boolean = false;
+			private var resizeX:Number;
+			private var resizeY:Number;
+			private var buttonMouseX:Number;
+			private var buttonMouseY:Number;
+			
+			[Bindable]
+			private var borderWeight:Number=3;
+			
+			public var dragResizeArea:Group;
+			
+			
+			private var resizeButtons:Array;
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				resizeButtons=[];
+				
+				for (var i:int = 1; i < 4; i++) 
+				{
+					for (var j:int = 1; j < 4; j++) 
+					{
+						if(i!=2||j!=2)
+						{
+							var _rb:ResizeButton=new ResizeButton;
+							var _rbe:ResizeButton=new ResizeButton(true);
+							
+							if(i==1)
+							{
+								_rb.left=-_rb.width/2-borderWeight/2;
+								_rbe.left=_rb.left;
+							}
+							else if(i==3)
+							{
+								_rb.right=-_rb.width/2-borderWeight/2;
+								_rbe.right=_rb.right;
+							}
+							else
+							{
+								_rb.horizontalCenter=0;
+								_rbe.horizontalCenter=0;
+								
+							}
+							if(j==1)
+							{
+								_rb.top=-_rb.height/2-borderWeight/2;
+								_rbe.top=_rb.top;
+								
+							}
+							else if(j==3)
+							{
+								_rb.bottom=-_rb.height/2-borderWeight/2;
+								_rbe.bottom=_rb.bottom;
+								
+							}
+							else
+							{
+								_rb.verticalCenter=0;
+								_rbe.verticalCenter=0;
+								
+							}
+							resizeButtons.push(_rb);
+							addElement(_rbe);
+							addElement(_rb);
+							
+							
+						}
+					}
+					
+				}
+				
+				
+				
+				this.addEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler);
+				this.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+				for each (var rB:ResizeButton in resizeButtons) 
+				{
+					rB.addEventListener(MouseEvent.MOUSE_DOWN, resizeDown);
+					
+				}
+				
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_MOVE, timeline_mouseMoveHandler);
+				this.addEventListener(MouseEvent.MOUSE_MOVE, timeline_mouseMoveHandler);
+				addEventListener(Event.ENTER_FRAME, enterFrameHandler);
+			}
+			
+			public function clean():void{
+				this.removeEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler);
+				this.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+				for each (var rB:ResizeButton in resizeButtons) 
+				{
+					rB.removeEventListener(MouseEvent.MOUSE_DOWN, resizeDown);				
+					
+				}
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_MOVE, timeline_mouseMoveHandler);
+				this.removeEventListener(MouseEvent.MOUSE_MOVE, timeline_mouseMoveHandler);
+				removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, topLevelApplication_mouseUpHandler);
+				
+			}
+			
+			private var currentButton:ResizeButton;
+			protected function resizeDown(event:MouseEvent):void
+			{
+				currentButton=event.currentTarget as ResizeButton;
+				over = true;
+				resize = true;
+				var resizePoint:Point=dragResizeArea.globalToLocal(new Point(event.stageX,event.stageY));
+				resizeX = resizePoint.x-5;
+				resizeY = resizePoint.y-5;
+				var buttonPoint:Point=currentButton.globalToLocal(new Point(event.stageX,event.stageY));
+				buttonMouseX = buttonPoint.x;
+				buttonMouseY = buttonPoint.y;
+			}
+			
+			protected function mouseDownHandler(event:MouseEvent):void
+			{
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, topLevelApplication_mouseUpHandler);
+				
+				if(!(event.target is ResizeButton))
+				{
+					
+					drag=true;
+					over = true;
+					
+					this.startDrag(false, new Rectangle(0, 0, dragResizeArea.width-this.width, dragResizeArea.height-this.height));
+				}
+				
+			}
+			
+			protected function timeline_mouseMoveHandler(event:MouseEvent):void
+			{
+				
+				if (!drag){
+					
+				}
+				if(resize){
+					var resizePoint:Point=dragResizeArea.globalToLocal(new Point(event.stageX,event.stageY));
+					resizeX = resizePoint.x-5;
+					resizeY = resizePoint.y-5;
+					
+					trace(resizeX , resizeX , this.x, this.y);
+				}
+				event.updateAfterEvent();
+				
+			}		
+			
+			public function changeAsset():void
+			{
+				var oldW:Number=asset.width;
+				var oldH:Number=asset.height;
+				var oldX:Number=asset.x;
+				var oldY:Number=asset.y;
+
+				var newX:Number=x/videoController.previewVideo.width*timelineManager.width;
+				var newY:Number=y/videoController.previewVideo.height*timelineManager.height;
+				var newW:Number=width/videoController.previewVideo.width*timelineManager.width;
+				var newH:Number=height/videoController.previewVideo.height*timelineManager.height;
+
+				
+				asset.width=newW;
+				asset.height=newH;
+				asset.x=newX;
+				asset.y=newY;
+				GshahVideoController.instance.addAsset(asset);
+				
+				UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.RESIZE,
+					[UndoRedoManager.updateAssetSize(asset,oldX,oldY,oldW,oldH)],
+					[UndoRedoManager.updateAssetSize(asset,newX,newY,newW,newH)]));
+				
+
+			}
+			
+			protected function mouseOutHandler(event:MouseEvent):void
+			{
+				over=false;
+				
+			}
+			
+			
+			
+			
+			protected function enterFrameHandler(event:Event):void
+			{
+				if (!drag || !over)
+				{
+					
+				}
+				else
+				{
+					
+				}
+				
+				if(resize){
+					var w:Number;
+					var h:Number;
+					if(currentButton.bottom!=null)
+					{
+						h =  resizeY+currentButton.height/2-buttonMouseY-y+6;
+					}
+					else if(currentButton.top!=null)
+					{
+						var _y:Number=Math.max(resizeY-buttonMouseY+currentButton.height/2,0);
+						h = height+y-_y;
+						this.y=_y;
+						
+					}
+					else
+					{
+						h=height;
+					}	
+					if(currentButton.left!=null)
+					{
+						var _x:Number=Math.max(resizeX-buttonMouseX+currentButton.width/2,0);
+						w =  width+x-_x;
+						this.x=_x;
+					}
+					else if(currentButton.right!=null)
+					{
+						w =  resizeX+currentButton.width/2-buttonMouseX-x+6;
+					}
+					else
+					{
+						w=width;
+					}
+					
+					if (w<30) w=20;
+					if (h<30) h = 20;
+					if((w+this.x)>dragResizeArea.width){
+						w = dragResizeArea.width-this.x;
+					}
+					if((h+this.y)>dragResizeArea.height){
+						h = dragResizeArea.height-this.y;
+					}
+					if(HotKeyManager.instance.shiftKey)
+					{
+						if((currentButton.left!=null||currentButton.right!=null)&&(currentButton.top!=null||currentButton.bottom!=null))
+						{
+							var sc:Number=Math.min(w/asset.source.metadata.resX,h/asset.source.metadata.resY);
+							
+						}
+						else
+						{
+							if((currentButton.left!=null||currentButton.right!=null))
+							{
+								sc=Math.min(w/asset.source.metadata.resX,w/(dragResizeArea.width-this.x));
+
+							}
+							else
+							{
+								sc=Math.min(h/asset.source.metadata.resY,h/(dragResizeArea.height-this.x));
+
+							}
+						}
+						w=asset.source.metadata.resX*sc;
+						h=asset.source.metadata.resY*sc;
+					}
+					this.width=w;
+					this.height=h;
+					
+				}
+				else
+				{
+					
+				}
+			}
+			
+			private var _previewImage:Object;
+			
+			
+			protected function onIOError(e:IOErrorEvent):void
+			{
+				trace(e);
+			}
+			
+			
+			
+			
+			protected function topLevelApplication_mouseUpHandler(event:MouseEvent):void
+			{
+				this.stopDrag();
+				drag = false;
+				resize = false;
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, topLevelApplication_mouseUpHandler);
+				changeAsset();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<!--<s:Group x="-50" y="-50" width="100" height="100" blendMode="erase">
+	<s:Rect width="100" height="100">
+	<s:fill>
+	<s:SolidColor color="#ffffff"/>
+	</s:fill>
+	</s:Rect>
+	
+	</s:Group>-->
+</s:BorderContainer>

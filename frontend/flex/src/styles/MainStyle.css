@@ -1,0 +1,46 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+.TimelineControls{
+	skinClass:ClassReference("application.skins.TransperentButtonSkin");
+	fontFamily:OpenSans;
+	chromeColor:#FFFFFF;
+}
+
+.PopUpButton{
+	skinClass:ClassReference("application.skins.PopUpButtonSkin");
+	fontFamily:OpenSans;
+	color:#FFFFFF;
+	cornerRadius:7;
+	chromeColor:#FE3B41;
+}
+
+.PopUpLabel{
+	color:#FFFFFF;
+	fontSize:14;
+	fontFamily:OpenSans;
+}
+
+.PopUpText{
+	borderVisible:false;
+	focusColor:#212021;
+	fontFamily:OpenSans;
+	fontSize:14;
+}
+
+.PopUpTextArea{
+	skinClass:ClassReference("application.skins.PopUpTextAreaSkin");
+	borderVisible:false;
+	focusColor:#212021;
+	fontFamily:OpenSans;
+	fontSize:14;
+}
+
+.PopUpTextInput{
+	skinClass:ClassReference("application.skins.PopUpTextInputSkin");
+	borderVisible:false;
+	focusColor:#212021;
+	fontFamily:OpenSans;
+	fontSize:14;
+}

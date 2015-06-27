@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   width="100%" height="100%" backgroundColor="#212021" borderVisible="false"
+				   contentBackgroundColor="#212021" minWidth="150"
+				   xmlns:asl="application.components.asl.*" 
+				   xmlns:skins="application.skins.*" 
+				   xmlns:components="application.components.*" 
+				   xmlns:colorpicker="application.components.colorpicker.*" 
+				   xmlns:dhs="application.components.dhs.*" 
+				   xmlns:popups="application.view.popups.*" 
+				   xmlns:view="application.view.*"
+				   currentState="{SystemSettings.licensingType}State">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.IndexChangedEvent;
+			import mx.managers.PopUpManager;
+			
+			import application.managers.TimelineManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.UndoRedoManagerItem;
+			import application.managers.components.UndoRedoManagerItemType;
+			import application.view.popups.AddAnimationWindow;
+			
+			import fonts.GshahFont;
+			
+			import gshah.GshahGreenScreen;
+			import gshah.GshahTextUI;
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahAssetType;
+			import gshah.icons.AlignmentCenterIcon;
+			import gshah.icons.AlignmentLeftIcon;
+			import gshah.icons.AlignmentRightIcon;
+			import gshah.icons.AudioIcon;
+			import gshah.icons.EyeDropperIcon;
+			import gshah.icons.GreenScreenIcon;
+			import gshah.icons.IntrosIcon;
+			import gshah.icons.LowerThirdsIcon;
+			import gshah.icons.MediaIcon;
+			import gshah.icons.OutrosIcon;
+			import gshah.icons.TextIcon;
+			
+			import sys.SystemSettings;
+			
+			
+			
+			protected function addAnimation_clickHandler(event:MouseEvent):void
+			{
+				var addAnimationsPopUp:AddAnimationWindow=new AddAnimationWindow;
+				switch(event.target)
+				{
+					case addLowerThirds:
+					{
+						addAnimationsPopUp.currentState=AddAnimationWindow.STATE_LOWER_THIRDS;
+						break;
+					}
+					case addIntroButton:
+					{
+						addAnimationsPopUp.currentState=AddAnimationWindow.STATE_INTROS;
+						break;
+					}
+					case addOutroButton:
+					{
+						addAnimationsPopUp.currentState=AddAnimationWindow.STATE_OUTROS;
+						break;
+					}
+					case addTextSlideButton:
+					{
+						addAnimationsPopUp.currentState=AddAnimationWindow.STATE_TEXT_SLIDES;
+						break;
+					}
+				}
+				
+				PopUpManager.addPopUp(addAnimationsPopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(addAnimationsPopUp);
+			}
+			[Bindable]
+			private var timelineManager:TimelineManager=TimelineManager.instance;
+			
+			[Bindable]
+			private var greenScreen:GshahGreenScreen=GshahGreenScreen.instance;
+			
+			protected function gsOfferButton_clickHandler(event:MouseEvent):void
+			{
+				greenScreen.getGreenScreen(event.target==gsOfferButton);
+			}
+			
+			protected function gsApplyButton_clickHandler(event:MouseEvent):void
+			{
+				greenScreen.previewing=false;
+				
+				
+				
+				var oldColor:int=timelineManager.currentItem.greenScreenColor;
+				var oldTola:int=timelineManager.currentItem.greenScreenTola;
+				var oldTolb:int=timelineManager.currentItem.greenScreenTolb;
+
+				timelineManager.currentItem.greenScreenColor=event.target==gsApplyButton?greenScreen.selectedColor:-1;
+				timelineManager.currentItem.greenScreenTola=Math.min(greenScreen.tol1,greenScreen.tol2);
+				timelineManager.currentItem.greenScreenTolb=Math.max(greenScreen.tol1,greenScreen.tol2);
+				
+				var newColor:int=timelineManager.currentItem.greenScreenColor;
+				var newTola:int=timelineManager.currentItem.greenScreenTola;
+				var newTolb:int=timelineManager.currentItem.greenScreenTolb;
+				
+				GshahVideoController.instance.addAsset(timelineManager.currentItem);
+				
+				UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.GREENSCREEN,
+					[UndoRedoManager.updateAssetGreenScreen(timelineManager.currentItem,oldColor,oldTola,oldTolb)],
+					[UndoRedoManager.updateAssetGreenScreen(timelineManager.currentItem,newColor,newTola,newTolb)]));
+			}
+			
+			
+			[Bindable]
+			private var fontSizes:ArrayCollection=new ArrayCollection([8,10,12,14,16,18,20,24,28,32,36,44,52,60,72]);
+			[Bindable]
+			private var fontAlignments:ArrayCollection=new ArrayCollection([{icon:AlignmentLeftIcon},{icon:AlignmentCenterIcon},{icon:AlignmentRightIcon}]);
+			protected function fontSizeDropDownList_labelFunction(item:Object):String
+			{
+				return item+' pt';
+			}
+			
+			
+			
+			[Bindable]
+			private var selectedFontSize:int=36;
+			
+			protected function fontStyleDropDownList_labelFunction(item:Object):String
+			{
+				return GshahFont.getStyleLabel(item as Font);
+			}
+			
+			protected function addText_clickHandler(event:MouseEvent):void
+			{
+				var gshahUI:GshahTextUI=new GshahTextUI();
+				TimelineManager.instance.animationContainer.addChild(gshahUI);
+				gshahUI.updateText(fontStyleDropDownList.selectedItem,fontColorPicker.selectedColor,fontAlignmentButtonBar.selectedIndex,fontRichText.text);
+			}
+			
+			
+			
+			protected function eyeDropperButton_clickHandler(event:MouseEvent):void
+			{
+				if(TimelineManager.instance.resizeBox!=null)
+				{
+					TimelineManager.instance.eyeDropping=true;
+					TimelineManager.instance.resizeBox.addEventListener(MouseEvent.CLICK,eyeDropperBox_clickHandler);
+				}
+			}
+			
+			
+			
+			protected function rightPanelStack_changeHandler(event:IndexChangedEvent):void
+			{
+				if(TimelineManager.instance.eyeDropping)
+				{
+					TimelineManager.instance.eyeDropping=false;
+					if(TimelineManager.instance.resizeBox)
+					{
+						TimelineManager.instance.resizeBox.removeEventListener(MouseEvent.CLICK,eyeDropperBox_clickHandler);
+					}
+				}
+			}
+			
+			protected function eyeDropperBox_clickHandler(event:MouseEvent):void
+			{
+				if(TimelineManager.instance.eyeDropping)
+				{
+					TimelineManager.instance.eyeDropping=false;
+					if(TimelineManager.instance.resizeBox)
+					{
+						TimelineManager.instance.resizeBox.removeEventListener(MouseEvent.CLICK,eyeDropperBox_clickHandler);
+						var rbX:Number=TimelineManager.instance.resizeBox.mouseX+10;
+						var rbY:Number=TimelineManager.instance.resizeBox.mouseY+10;
+						var scX:Number=TimelineManager.instance.resizeBox.width/TimelineManager.instance.resizeBox.asset.source.metadata.resX;
+						var scY:Number=TimelineManager.instance.resizeBox.height/TimelineManager.instance.resizeBox.asset.source.metadata.resY;
+						
+						var d:int=TimelineManager.instance.resizeBox.asset.timelineStart;
+						for (var i:int = 0; i < TimelineManager.instance.resizeBox.asset.parts.length; i++) 
+						{
+							var p:Object=TimelineManager.instance.resizeBox.asset.parts[i];
+							d+=p.e-p.s;
+							if(d>=GshahVideoController.instance.currentTime*1000)
+							{
+								break;
+							}
+						}
+						
+						GshahVideoController.instance.eyeDrop(TimelineManager.instance.resizeBox.asset.uuid+i,rbX/scX,rbY/scY,20/scX,20/scY);
+						
+						
+					}
+					
+				}
+			}
+			public var undos:Array=[];
+
+			protected function updateText_clickHandler(event:MouseEvent):void
+			{
+				if(timelineManager.currentItem!=null&&timelineManager.currentItem.type==GshahAssetType.TEXT)
+				{
+					var ui:GshahTextUI=GshahTextUI(timelineManager.currentItem.source.ui);
+					UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.ADD,
+						[UndoRedoManager.updateTextAsset(timelineManager.currentItem,ui.inputFont,ui.fontColor,ui.alignmentIndex,ui.text)],
+						[UndoRedoManager.updateTextAsset(timelineManager.currentItem,fontStyleDropDownList.selectedItem,fontColorPicker.selectedColor,fontAlignmentButtonBar.selectedIndex,fontRichText.text)]));
+
+					ui.updateText(fontStyleDropDownList.selectedItem,fontColorPicker.selectedColor,fontAlignmentButtonBar.selectedIndex,fontRichText.text);
+				}
+				
+			}
+			
+
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!--<popups:PopUpBorderContainer id="textTitledWindow"
+		backgroundImage="{PopUpBackground}" 
+		initialize="textTitledWindow_initializeHandler(event)">
+		
+		<popups:layout>
+		<s:VerticalLayout paddingTop="5" paddingBottom="5" paddingLeft="5" paddingRight="5" gap="5" 
+		horizontalAlign="left" verticalAlign="top"/>
+		</popups:layout>
+		
+		<s:RichEditableText id="fontTextInput" text="Your Text" backgroundAlpha="0"
+		fontWeight="{getFontWeight(fontFamilyDropDownList.selectedItem,fontStyleDropDownList.selectedItem)}"
+		fontStyle="{getFontStyle(fontFamilyDropDownList.selectedItem,fontStyleDropDownList.selectedItem)}"
+		fontFamily="{getFontFamily(fontFamilyDropDownList.selectedItem,fontStyleDropDownList.selectedItem)}"
+		fontSize="{selectedFontSize}" 
+		textAlign="{getFontAlignment(fontAlignmentButtonBar.selectedIndex)}"
+		color="{fontColorPicker.selectedColor}"/>
+		<s:HGroup width="100%" horizontalAlign="right"> 
+		<s:Button id="addTextButton" 
+		label="Add Text" 
+		fontSize="24" width="120" height="36" 
+		click="textTitledWindow.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,false,false,Alert.OK))" 
+		color="0xffffff" chromeColor="#FF3B42" styleName="PopUpButton"/>
+		<s:Button id="cancelButton" label="Cancel" fontSize="24" width="120" height="36" 
+		click="textTitledWindow.dispatchEvent(new CloseEvent(CloseEvent.CLOSE))" 
+		color="0xffffff" chromeColor="#AAAAAA" styleName="PopUpButton"/>
+		</s:HGroup>  
+		</popups:PopUpBorderContainer>-->
+	</fx:Declarations>
+	<s:states>
+		<s:State name="starterState"/>
+		<s:State name="premiumState" stateGroups="fullStates"/>
+		<s:State name="agencyState"/>
+		<s:State name="OTO1State" stateGroups="fullStates,otoStates"/>
+		<s:State name="OTO1DownSellState" stateGroups="fullStates,otoStates"/>
+	</s:states>
+	<s:Rect height="100%" width="100%">                              
+		<s:stroke>
+			<s:SolidColorStroke color="#333333" weight="1"/>
+		</s:stroke>
+		<s:fill>
+			<s:LinearGradient rotation="-45">
+				<s:GradientEntry color="#777777" ratio="0" alpha=".5"/>
+				<s:GradientEntry color="#444444" ratio=".33" alpha=".5"/>
+				<s:GradientEntry color="#202120" ratio=".66" alpha=".5"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	<s:VGroup top="20" left="10" right="10" bottom="10" width="100%" height="100%">
+		<s:Label text="EDITING OPTIONS" fontSize="16" color="#999999"/>
+		<s:ButtonBar id="rightPanelButtonBar" width="100%"
+					 dataProvider="{rightPanelStack}" color="0xffffff" requireSelection="true" styleName="ButtonBaseStyle"
+					 skinClass="application.skins.RightPanelButtonBarSkin">
+			<s:layout>
+				<s:TileLayout id="rightPanelButtonBarTileLayout" paddingTop="0" paddingBottom="0" paddingLeft="0" paddingRight="0" verticalGap="4" horizontalGap="4" 
+							  horizontalAlign="left" verticalAlign="top" rowHeight="30" columnWidth="100" rowAlign="top" columnAlign="justifyUsingWidth"/>
+			</s:layout>
+		</s:ButtonBar>
+		<s:Spacer height="{rightPanelButtonBarTileLayout.rowCount*rightPanelButtonBarTileLayout.rowHeight-rightPanelButtonBar.height}"/>
+		<mx:ViewStack id="rightPanelStack" width="100%" height="100%" change="rightPanelStack_changeHandler(event)">
+			<s:NavigatorContent label="Media"   width="100%" height="100%" icon="{MediaIcon}">
+				<view:AssetSourceList id="fileList" width="100%" height="100%"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Audio"  width="100%" height="100%" icon="{AudioIcon}" >
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10"   enabled="{timelineManager.currentItem!=null}">
+					<components:IconBackgroundLabel id="audioLabel" iconSource="{AudioIcon}" height="24" 
+													labelText="Audio" color="0xffffff" 
+													styleName="ButtonBaseStyle" />
+					<s:Label styleName="ButtonBaseStyle" text="Audio Options" color="0xffffff"/>
+					<s:HGroup enabled="{timelineManager.currentItem.type==GshahAssetType.AUDIO||timelineManager.currentItem.type==GshahAssetType.VIDEO}">						
+						<s:Button id="audioMuteButton" skinClass="application.skins.DarkGrayButtonSkin"
+								  label="Mute" color="0xffffff" click="timelineManager.currentItem.volume=0"/>
+						<s:HSlider value="@{timelineManager.currentItem.volume}" maximum="100" skinClass="application.skins.GrayHSliderSkin"/>
+						<components:BorderNumberInput value="@{timelineManager.currentItem.volume}"/>
+					</s:HGroup>				
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Text"  width="100%" height="100%" icon="{TextIcon}">
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10">
+					<components:IconBackgroundLabel id="textLabel" iconSource="{TextIcon}" height="24" labelText="Text" color="0xffffff" styleName="ButtonBaseStyle" />
+					<s:Label styleName="ButtonBaseStyle" text="Text Options" color="0xffffff"/>
+					
+					<s:HGroup width="100%">
+						<s:Label styleName="ButtonBaseStyle" text="Font:" color="0xffffff" paddingTop="3"/>
+						<s:VGroup width="100%">
+							<s:DropDownList id="fontFamilyDropDownList" width="100%" selectedItem="{GshahTextUI.getMainFont(timelineManager.currentItem)}"
+											requireSelection="true" dataProvider="{GshahFont.getFontProvider()}"/>
+							<s:DropDownList id="fontStyleDropDownList" width="100%" labelFunction="fontStyleDropDownList_labelFunction"
+											requireSelection="true" dataProvider="{fontFamilyDropDownList.selectedItem.fonts}"
+											selectedItem="{GshahTextUI.getInputFont(timelineManager.currentItem,fontFamilyDropDownList.selectedItem)}"/>
+						</s:VGroup>  
+						
+					</s:HGroup>  
+					
+					<!--	<s:HGroup width="100%">
+					<s:Label styleName="ButtonBaseStyle" text="Text Size:" color="0xffffff" paddingTop="3"/>
+					<s:DropDownList id="fontSizeDropDownList" width="100%" labelFunction="fontSizeDropDownList_labelFunction"
+					requireSelection="true" dataProvider="{fontSizes}" selectedItem="@{selectedFontSize}"/>
+					
+					</s:HGroup>  -->
+					<s:HGroup width="100%" verticalAlign="middle">
+						<s:Label styleName="ButtonBaseStyle" text="Alignment:" color="0xffffff" paddingTop="3"/>
+						<s:ButtonBar id="fontAlignmentButtonBar" requireSelection="true" 
+									 skinClass="application.skins.AlignmentButtonBarSkin" 
+									 dataProvider="{fontAlignments}" selectedIndex="{GshahTextUI.getFontAlignmentIndex(timelineManager.currentItem)}"/>
+					</s:HGroup> 
+					<s:HGroup width="100%" verticalAlign="middle">
+						<s:Label styleName="ButtonBaseStyle" text="Color:" color="0xffffff" />
+						<colorpicker:SparkColorPicker id="fontColorPicker" requireSelection="true" selectedColor="{GshahTextUI.getFontColor(timelineManager.currentItem)}"/>
+					</s:HGroup> 
+					<s:HGroup width="100%" verticalAlign="middle">
+						<s:Button id="addText" skinClass="application.skins.RightPanelButtonBarButtonSkin"
+								  label="Add Text" color="0xffffff" click="addText_clickHandler(event)"/>
+						<s:Button id="updateText" skinClass="application.skins.RightPanelButtonBarButtonSkin"
+								  label="Update Text" 
+								  enabled="{!(timelineManager.currentItem==null||timelineManager.currentItem.type!=GshahAssetType.TEXT)}" 
+								  color="0xffffff" click="updateText_clickHandler(event)"/>
+					</s:HGroup> 
+					<s:RichEditableText id="fontRichText" 
+										text="{GshahTextUI.getFontText(timelineManager.currentItem)}" width="100%"
+										fontWeight="{GshahTextUI.getFontWeight(fontStyleDropDownList.selectedItem)}"
+										fontStyle="{GshahTextUI.getFontStyle(fontStyleDropDownList.selectedItem)}"
+										fontFamily="{GshahTextUI.getFontFamily(fontStyleDropDownList.selectedItem)}"
+										textAlign="{GshahTextUI.getFontAlignment(fontAlignmentButtonBar.selectedIndex)}"									
+										fontSize="{selectedFontSize/2}" 
+										color="{fontColorPicker.selectedColor}"/>
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Lower Thirds"  width="100%" height="100%" icon="{LowerThirdsIcon}">
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10">
+					<components:IconBackgroundLabel id="lowerThirdsLabel" iconSource="{LowerThirdsIcon}" height="24" labelText="Lower Thirds" color="0xffffff" styleName="ButtonBaseStyle" />
+					<s:Label styleName="ButtonBaseStyle" text="Add titles and subtitles to your movie" color="0xffffff"/>
+					<s:Button id="addLowerThirds" skinClass="application.skins.RightPanelButtonBarButtonSkin"  width="{lowerThirdsLabel.width}"
+							  label="Add Lower 3rd" color="0xffffff" click="addAnimation_clickHandler(event)"/>
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Green Screen"  width="100%" height="100%" icon="{GreenScreenIcon}" includeIn="fullStates">
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10" 
+						  enabled="{!(timelineManager.currentItem==null||timelineManager.currentItem.type!=GshahAssetType.VIDEO||greenScreen.running)}">
+					<components:IconBackgroundLabel id="gsLabel" iconSource="{GreenScreenIcon}" height="24" 
+													labelText="Green Screen" color="0xffffff" 
+													styleName="ButtonBaseStyle" />
+					<s:HGroup width="100%" verticalAlign="middle">
+						<s:Label styleName="ButtonBaseStyle" text="Tolerance: " color="0xffffff"/>
+						<s:HSlider value="@{greenScreen.tolerance}" maximum="100" skinClass="application.skins.GrayHSliderSkin"/>
+						<components:BorderNumberInput value="@{greenScreen.tolerance}"/>
+					</s:HGroup>
+					<s:HGroup width="100%" >
+						<s:Label styleName="ButtonBaseStyle" text="  Softness: " color="0xffffff"/>
+						<s:HSlider value="@{greenScreen.softness}" maximum="100" skinClass="application.skins.GrayHSliderSkin"/>
+						<components:BorderNumberInput value="@{greenScreen.softness}"/>
+						
+					</s:HGroup>
+					
+					<s:HGroup width="100%" >
+						
+						<colorpicker:SparkColorPicker id="gsPromptColorPicker" 
+													  dataProvider="{greenScreen.colorProvider}"
+													  selectedColor="@{greenScreen.selectedColor}"/>
+						
+						<s:Button id="gsOfferButton" skinClass="application.skins.RightPanelButtonBarButtonSkin"  width="{gsLabel.width}"
+								  label="Offer colors" color="0xffffff" click="gsOfferButton_clickHandler(event)"/>
+						
+					</s:HGroup>  
+					<s:HGroup width="100%" >
+						<colorpicker:SparkColorPicker id="gsMainColorPicker"  selectedColor="@{greenScreen.selectedColor}"/>
+						<s:Button id="eyeDropperButton" skinClass="application.skins.DarkGrayButtonSkin"
+								  color="0xffffff" icon="{EyeDropperIcon}" width="24" minWidth="24" height="24" click="eyeDropperButton_clickHandler(event)"/>
+						
+						<s:Button id="gsPreviewButton" skinClass="application.skins.RightPanelButtonBarButtonSkin"  width="{gsLabel.width}"
+								  label="Get preview" color="0xffffff" click="gsOfferButton_clickHandler(event)"/>
+						
+					</s:HGroup>  
+					<s:HGroup width="100%">
+						<s:Button id="gsApplyButton" skinClass="application.skins.RightPanelButtonBarButtonSkin"  width="{gsLabel.width}"
+								  label="Apply Color" color="0xffffff" click="gsApplyButton_clickHandler(event)"/>
+						<s:Button id="gsResetButton" skinClass="application.skins.RightPanelButtonBarButtonSkin"  width="{gsLabel.width}"
+								  label="Reset Color" color="0xffffff" click="gsApplyButton_clickHandler(event)"/>
+					</s:HGroup>  
+				</s:VGroup>
+			</s:NavigatorContent>
+			<!--			<s:NavigatorContent label="Effects"  width="100%" height="100%" icon="{EffectsIcon}">
+			
+			</s:NavigatorContent>-->
+			<s:NavigatorContent label="Intros"  width="100%" height="100%" icon="{IntrosIcon}">
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10">
+					<components:IconBackgroundLabel iconSource="{IntrosIcon}" height="24" labelText="Intros" color="0xffffff" styleName="ButtonBaseStyle" />
+					<s:Label styleName="ButtonBaseStyle" text="Add an intro to your movie" color="0xffffff"/>
+					<s:Button id="addIntroButton" skinClass="application.skins.RightPanelButtonBarButtonSkin" 
+							  label="Add Intro" color="0xffffff" click="addAnimation_clickHandler(event)"/>
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Outros"  width="100%" height="100%" icon="{OutrosIcon}" includeIn="fullStates">
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10">
+					<components:IconBackgroundLabel iconSource="{OutrosIcon}" height="24" labelText="Outros" color="0xffffff" styleName="ButtonBaseStyle" />
+					<s:Label styleName="ButtonBaseStyle" text="Add an outro to your movie" color="0xffffff"/>
+					<s:Button id="addOutroButton" skinClass="application.skins.RightPanelButtonBarButtonSkin" 
+							  label="Add Outro" color="0xffffff" click="addAnimation_clickHandler(event)"/>
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Text Slides"  width="100%" height="100%" icon="{TextIcon}" includeIn="otoStates">
+				<s:VGroup width="100%" height="100%" paddingLeft="5" paddingTop="5" gap="10">
+					<components:IconBackgroundLabel iconSource="{TextIcon}" height="24" labelText="Text Slides" color="0xffffff" styleName="ButtonBaseStyle" />
+					<s:Label styleName="ButtonBaseStyle" text="Add an text slide to your movie" color="0xffffff"/>
+					<s:Button id="addTextSlideButton" skinClass="application.skins.RightPanelButtonBarButtonSkin" 
+							  label="Add Text Slide" color="0xffffff" click="addAnimation_clickHandler(event)"/>
+				</s:VGroup>
+			</s:NavigatorContent>
+		</mx:ViewStack>
+	</s:VGroup>
+</s:BorderContainer>

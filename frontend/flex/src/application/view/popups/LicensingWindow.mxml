@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							 xmlns:s="library://ns.adobe.com/flex/spark" 
+							 xmlns:mx="library://ns.adobe.com/flex/mx" 
+							 xmlns:popups="application.view.popups.*" 
+							 backgroundImage="{LicensingPopUpBackground}" 
+							 xmlns:colorpicker="application.components.colorpicker.*" 
+							 initialize="popupbordercontainer_initializeHandler(event)"
+							 creationComplete="popupbordercontainer_creationCompleteHandler(event)"
+							 xmlns:view="application.view.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.utils.UIDUtil;
+			
+			import gshah.bg.LicensingPopUpBackground;
+			import gshah.icons.Logo;
+			
+			import sys.SystemSettings;
+			
+			
+			public var autoLogin:Boolean;
+			
+			protected function popupbordercontainer_initializeHandler(event:FlexEvent):void
+			{
+				if(SharedObject.getLocal('gshah').data["licenseUsername"]!=null)
+				{
+					login=SharedObject.getLocal('gshah').data["licenseUsername"];
+				}
+				if(SharedObject.getLocal('gshah').data["licensePassword"]!=null)
+				{
+					password=SharedObject.getLocal('gshah').data["licensePassword"];
+				}
+				if(SharedObject.getLocal('gshah').data["licenseUuid"]!=null)
+				{
+					uuid=SharedObject.getLocal('gshah').data["licenseUuid"];
+				}
+				else
+				{
+					uuid=UIDUtil.createUID();
+				}
+				
+				width=FlexGlobals.topLevelApplication.width*0.55;
+				height=FlexGlobals.topLevelApplication.height*0.64;
+				
+			}
+			
+			protected function logoUI_creationCompleteHandler(event:FlexEvent):void
+			{
+				var logoIcon:Logo=new Logo;
+				logoIcon.scaleX=logoIcon.scaleY=0.14*height/683.7;
+				logoUI.addChild(logoIcon);
+			}
+			
+			[Bindable]
+			private var login:String='';
+			
+			[Bindable]
+			private var password:String='';
+			
+			private var uuid:String='';
+			
+			protected function loginButton_clickHandler(event:MouseEvent):void
+			{
+				var request:URLRequest = new URLRequest(SystemSettings.LICENSING_URL);
+				request.method = URLRequestMethod.POST;
+				
+				var requestVars:URLVariables = new URLVariables();
+				requestVars.username = login;
+				requestVars.password = password;
+				requestVars.id = uuid;
+				request.data=requestVars;
+				trace(requestVars);
+				
+				var urlLoader:URLLoader = new URLLoader();
+				urlLoader.dataFormat = URLLoaderDataFormat.TEXT;
+				urlLoader.addEventListener(Event.COMPLETE, urlLoader_completeHandler, false, 0, true);
+				urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, urlLoader_errorHandler, false, 0, true);
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, urlLoader_errorHandler, false, 0, true);
+				
+				try {
+					
+					urlLoader.load(request);
+					
+				} catch (e:Error) {
+					
+					trace(e);
+					
+				}
+			}
+			
+			protected function urlLoader_completeHandler(e:Event):void {
+				
+				trace(e.target.data);
+				
+				var res:Object=JSON.parse(e.target.data);
+				
+				if(res!=null)
+				{
+					if(res.hasOwnProperty('status')&&res.status!='fail'&&res.hasOwnProperty('role'))
+					{
+						var licensingType:String;
+						switch(String(res.role).toLowerCase())
+						{
+							case 'starter':
+							{
+								licensingType=SystemSettings.LICENSING_TYPE_STARTER;
+								break;
+							}
+							case 'premium':
+							{
+								licensingType=SystemSettings.LICENSING_TYPE_PREMIUM;
+								break;
+							}
+							case 'agency':
+							{
+								licensingType=SystemSettings.LICENSING_TYPE_AGENCY;
+								break;
+							}
+								
+						}
+						
+						switch(String(res.oto).toLowerCase())
+						{
+							case 'pro':
+							{
+								licensingType=SystemSettings.LICENSING_TYPE_OTO1;
+								break;
+							}
+							case 'down':
+							{
+								licensingType=SystemSettings.LICENSING_TYPE_OTO1DOWNSELL;
+								break;
+							}
+								
+						}
+						if(licensingType!=null)
+						{
+							SystemSettings.licensingType=licensingType;
+							trace(res.role+' '+licensingType);
+							SharedObject.getLocal('gshah').data["licenseUsername"]=login;
+							SharedObject.getLocal('gshah').data["licensePassword"]=password;
+							SharedObject.getLocal('gshah').data["licenseRole"]=licensingType;
+							SharedObject.getLocal('gshah').data["licenseUuid"]=uuid;	
+							close();
+							return;
+						}
+					}
+					
+					if(res.hasOwnProperty('msg'))
+					{
+						showMessage(res.msg);
+					}
+					else
+					{
+						showMessage();
+					}
+				}
+				else
+				{
+					showMessage();
+				}
+				
+			}
+			
+			private function showMessage(msg:String='Connection Error'):void
+			{
+				GlamourAlert.show(msg);
+			}
+			
+			protected function urlLoader_errorHandler( e:Event ):void 
+			{
+				
+				showMessage();
+				trace(e);
+				
+			}
+			
+			
+			protected function popupbordercontainer_creationCompleteHandler(event:FlexEvent):void
+			{
+				if(autoLogin&&login!=null&&login!=''&&password!=null&&password!='')
+				{
+					loginButton.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" paddingTop="{0.10*height}" gap="{0.04*height}">
+		<s:HGroup verticalAlign="middle" gap="10" paddingBottom="{0.02*height}">
+			<mx:UIComponent  verticalCenter="0" width="{0.14*height}" height="{0.14*height}"
+							 id="logoUI" creationComplete="logoUI_creationCompleteHandler(event)">
+			</mx:UIComponent>
+			<s:Label text="videomotionpro" styleName="TopLabelStyle" fontFamily="OpenSansLight" fontWeight="normal" fontSize="{0.10*height}"/>
+			
+		</s:HGroup> 
+		<s:Label text="Welcome to the Videomotionpro Software Application" styleName="TopLabelStyle" fontFamily="OpenSansLight" fontWeight="normal" fontSize="{0.05*height}"/>
+		<s:Label text="Please enter your username &amp; password to access the software" styleName="TopLabelStyle" fontFamily="OpenSansLight" fontWeight="normal" fontSize="{0.04*height}"/>
+		<s:TextInput id="loginTextInput" prompt="Enter your username"
+					 fontSize="{0.07*height}" width="{width*0.55}"
+					 paddingLeft="{0.03*height}" text="@{login}"
+					 skinClass="application.skins.RoundedTextInput"/>
+		<s:TextInput id="passwordTextInput" prompt="Enter your password"
+					 fontSize="{0.07*height}" width="{width*0.55}" text="@{password}"
+					 paddingLeft="{0.03*height}" displayAsPassword="true"
+					 skinClass="application.skins.RoundedTextInput"/>
+		<s:Button id="loginButton" skinClass="application.skins.UpdateButtonSkin" fontSize="{0.04*height}" 
+				  fontFamily="OpenSans" width="{width*0.55}" color="0xffffff" height="{0.08*height}"
+				  label="LOGIN TO VIDEOMOTIONPRO" click="loginButton_clickHandler(event)"/>
+	</s:VGroup>
+</popups:PopUpBorderContainer>

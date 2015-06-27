@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:popups="application.view.popups.*" >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import application.managers.ProjectManger;
+			
+			[Bindable]
+			private var outPath:String;
+			
+			protected function closeHandler(create:Boolean):void
+			{
+				if(create)
+				{
+					ProjectManger.instance.clear();
+				}
+				
+				close();
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				focusManager.setFocus(projectNameInput);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VGroup left="40" right="40" top="20" bottom="20" gap="16">
+		<s:Label text="Enter new project name:" styleName="PopUpLabel" fontSize="20"/>
+		<s:TextInput id="projectNameInput" styleName="PopUpTextInput" width="300" height="36"/>
+		<!--<s:Label text="Creating a new project will erase all data.  Proceed?" 
+		styleName="ButtonBaseStyle" color="0xffffff" fontSize="24"/>-->
+		<s:HGroup gap="12" height="46" verticalAlign="bottom">
+			<s:Button id="yesButton" label="Create Project" styleName="PopUpButton" buttonMode="true" width="120" 
+					  height="36" click="closeHandler(true)"/>
+			<s:Button id="noButton" label="Cancel" styleName="PopUpButton" buttonMode="true" width="120" height="36"
+					  chromeColor="0xAAAAAA" click="closeHandler(false)"/>
+		</s:HGroup>  
+	</s:VGroup>
+</popups:PopUpBorderContainer>

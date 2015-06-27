@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true" xmlns:timeline="application.components.timeline.*" >
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			import application.managers.AssetSourceManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.UndoRedoManagerItem;
+			import application.managers.components.UndoRedoManagerItemType;
+			import application.skins.GrayCloseButtonSkin;
+			import application.view.popups.ImageFramingWindow;
+			
+			import gshah.entities.GshahAssetType;
+			import gshah.entities.GshahSource;
+			import gshah.events.GshahAssetEvent;
+			import gshah.icons.VolumeIcon;
+			import gshah.utils.GshahAssetUtils;
+			
+			[Bindable]
+			private var preview:Object;
+			[Bindable]
+			private var asset:GshahSource;
+			private const CORNER_RADIUS:int = 7;
+			
+			[Bindable]
+			private var thumbMask:Shape;
+			
+			public static const STATE_BITMAPDATA:String='bitmapDataState';
+			public static const STATE_WAVEFORM:String='waveFormState';
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				asset=value as GshahSource;
+				
+				if(asset!=null&&asset.preview!=null)
+				{
+					if(asset.type==GshahAssetType.AUDIO)
+					{
+						currentState=STATE_WAVEFORM;
+					}
+					else
+					{
+						currentState=STATE_BITMAPDATA;
+					}
+					asset.addEventListener(GshahAssetEvent.PREVIEW_CHANGE,asset_previewChangeHandler);
+					asset_previewChangeHandler();
+				}
+				else
+				{
+					currentState=STATE_BITMAPDATA;
+				}
+				if(thumbMaskContainer){
+					if(!thumbMask){
+						thumbMask = new Shape();
+						thumbMask.graphics.beginFill(0xffffff);
+						thumbMask.graphics.drawRoundRectComplex(0, 0, GshahAssetUtils.PREVIEW_DEFAULT_WIDTH, 
+							GshahAssetUtils.PREVIEW_DEFAULT_HEIGHT, CORNER_RADIUS, CORNER_RADIUS, 0, 0);
+						thumbMask.graphics.endFill();
+						thumbMaskContainer.addChild(thumbMask);
+					}
+				}
+			}
+			
+			protected function onIOError(e:IOErrorEvent):void
+			{
+				trace(e);
+			}
+			
+			private function onLoadImage(e:Event):void
+			{
+				
+				preview=e.target.content.bitmapData;;		
+				
+			}
+			
+			protected function asset_previewChangeHandler(event:GshahAssetEvent=null):void
+			{
+				if(asset.preview is String)
+				{
+					var imageFile:File = new File(String(asset.preview));
+					if(imageFile.exists&&imageFile.size>0)
+					{
+						var imageLoader:Loader = new Loader(); 
+						var urlReq :URLRequest = new URLRequest(imageFile.url);
+						imageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoadImage);
+						imageLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,onIOError);
+						imageLoader.load(urlReq);
+					}	
+				}
+				else
+				{
+					preview=asset.preview;
+				}
+			}
+			
+			protected function framingButton_clickHandler(event:MouseEvent):void
+			{
+				var framingWindow:ImageFramingWindow=new ImageFramingWindow;
+				framingWindow.asset=asset;
+				PopUpManager.addPopUp(framingWindow, FlexGlobals.topLevelApplication as DisplayObject, true);
+				PopUpManager.centerPopUp(framingWindow);
+			}
+			
+			protected function removeButton_clickHandler(event:MouseEvent):void
+			{
+				if(asset!=null)
+				{
+					UndoRedoManager.instance.addItem(new UndoRedoManagerItem(UndoRedoManagerItemType.SREMOVE,[UndoRedoManager.addSourceFunction(asset,AssetSourceManager.instance.dataProvider.getItemIndex(asset))],[UndoRedoManager.removeSourceFunction(asset)]));
+					
+					AssetSourceManager.instance.dataProvider.removeItemAt(AssetSourceManager.instance.dataProvider.getItemIndex(asset));					
+					
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="bitmapDataState"/>
+		<s:State name="waveFormState"/>
+	</s:states>
+	<s:BorderContainer borderWeight="0" borderAlpha="0" width="100%" height="100%" 
+					   cornerRadius="{CORNER_RADIUS}" backgroundColor="0x000000">
+		<mx:UIComponent id="thumbMaskContainer"/>
+		<s:Rect width="100%" height="100%" radiusX="{CORNER_RADIUS}" radiusY="{CORNER_RADIUS}">
+			<s:fill>
+				<s:LinearGradient rotation="90">
+					<s:GradientEntry color="0xffffff" alpha="0.12" ratio="0"/>
+					<s:GradientEntry color="0xffffff" alpha="0.12" ratio="0.48"/>
+					<s:GradientEntry color="0xffffff" alpha="0" ratio="1"/>
+				</s:LinearGradient>
+			</s:fill>
+		</s:Rect>
+		<s:Image id="thumbImage" mask="{thumbMask}" source="{GshahAssetUtils.scalePreview(preview)}" includeIn="bitmapDataState"
+				 width="{GshahAssetUtils.PREVIEW_DEFAULT_WIDTH}" height="{GshahAssetUtils.PREVIEW_DEFAULT_HEIGHT}"/>
+		<timeline:TimelineWaveFormUI id="twfUI" data="{preview}"
+									 volume="100" mask="{thumbMask}"
+									 includeIn="waveFormState" 
+									 width="{GshahAssetUtils.PREVIEW_DEFAULT_WIDTH}" height="{GshahAssetUtils.PREVIEW_DEFAULT_HEIGHT}"/>
+		<s:Rect width="100%" id="rectl" bottom="0" top="{GshahAssetUtils.PREVIEW_DEFAULT_HEIGHT}" bottomLeftRadiusX="{CORNER_RADIUS}"
+				bottomLeftRadiusY="{CORNER_RADIUS}" bottomRightRadiusX="{CORNER_RADIUS}" bottomRightRadiusY="{CORNER_RADIUS}">
+			<s:fill>
+				<s:LinearGradient rotation="90">
+					<s:GradientEntry color="0x313131" ratio="0"/>
+					<s:GradientEntry color="0x282828" ratio="0.4"/>
+					<s:GradientEntry color="0x101010" ratio="1"/>
+				</s:LinearGradient>
+			</s:fill>			
+		</s:Rect>
+		<s:Group width="100%" bottom="3" left="3" right="3" top="{GshahAssetUtils.PREVIEW_DEFAULT_HEIGHT}" maxWidth="{GshahAssetUtils.PREVIEW_DEFAULT_WIDTH}">
+			<s:Label maxDisplayedLines="1" left="0" verticalCenter="0" toolTip="{asset.name}" text="{asset.name}" color="#F0F0F0" width="70%"/>
+			<s:Image source="{VolumeIcon}" scaleX="0.04" scaleY="0.04" right="0" bottom="0" visible="{!(asset.type!=GshahAssetType.VIDEO||asset.withAudio==false)}" includeInLayout="{!(asset.type!=GshahAssetType.VIDEO||asset.withAudio==false)}"/>
+			<s:Button id="framingButton" click="framingButton_clickHandler(event)" right="0" bottom="0" width="40" label="[ ]" visible="{asset.type==GshahAssetType.IMAGE}" includeInLayout="{asset.type==GshahAssetType.IMAGE}"/>
+		</s:Group>
+	</s:BorderContainer>
+	<s:Button id="removeButton" visible="{asset.assetsCount==0}"
+			  width="20" height="20" right="0" click="removeButton_clickHandler(event)"
+			  skinClass="application.skins.GrayCloseButtonSkin"/>
+</s:ItemRenderer>

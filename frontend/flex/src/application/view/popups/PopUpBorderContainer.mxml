@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   backgroundImage="{PopUpBackground}" 
+				   cornerRadius="10" >
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.EffectEvent;
+			import mx.managers.PopUpManager;
+			
+			import gshah.bg.PopUpBackground;
+			
+			protected function parallel_effectEndHandler(event:EffectEvent):void
+			{
+				if(closing)
+				{
+					closing=false;
+					visible=true;
+					PopUpManager.removePopUp(this);
+					FlexGlobals.topLevelApplication.setFocus();
+				}
+			}
+			
+			private var closing:Boolean;
+			
+			public function close():void
+			{
+				closing=true;
+				visible=false;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[Event(name="close", type="mx.events.CloseEvent")]
+	</fx:Metadata>
+	<s:showEffect>
+		<s:Parallel duration="300">
+			<s:Scale scaleXFrom="0.5" autoCenterTransform="true" scaleYFrom="0.5" scaleXTo="1" scaleYTo="1" />
+			<s:Fade alphaFrom="0" alphaTo="1"/>
+		</s:Parallel>
+	</s:showEffect>
+	<s:hideEffect>
+		<s:Parallel duration="300" effectEnd="parallel_effectEndHandler(event)">
+			<s:Scale scaleXFrom="1" autoCenterTransform="true" scaleYFrom="1" scaleXTo="0.7" scaleYTo="0.7" />
+			<s:Fade alphaFrom="1" alphaTo="0"/>
+		</s:Parallel>
+	</s:hideEffect>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:BorderContainer>

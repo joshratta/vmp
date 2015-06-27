@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 top="0" bottom="0" height="100%" 
+		 rollOver="{CursorManager.setCursor(HRESIZE_CURSOR)}"
+		 rollOut="{if(!resizing)CursorManager.removeAllCursors()}"
+		 mouseDown="group_mouseDownHandler(event)" width="3">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.managers.CursorManager;
+			
+			[Embed(source="Assets.swf", symbol="mx.skins.cursor.HBoxDivider")]
+			private static const HRESIZE_CURSOR:Class;
+			
+			private static const RESIZE_START:String='resizeStart';
+			private static const RESIZE_END:String='resizeEnd';
+
+			[Bindable]
+			public var lineWeight:Number = 2;
+			[Bindable]
+			public var lineColor:uint = 0x7f7f7f;
+			
+		
+			
+			public var resizing:Boolean;
+			
+			protected function group_mouseDownHandler(event:MouseEvent):void
+			{
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				resizing=true;
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP,topLevelApplication_mouseUpHandler);
+				dispatchEvent(new Event(RESIZE_START));
+			}
+			
+			protected function topLevelApplication_mouseUpHandler(event:MouseEvent):void
+			{
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP,topLevelApplication_mouseUpHandler);
+				resizing=false;
+				CursorManager.removeAllCursors();
+				dispatchEvent(new Event(RESIZE_END));
+
+			}
+			
+			override public function set left(value:Object):void
+			{
+				super.left = value;
+				l.left = value;
+			}
+			
+			
+			override public function set right(value:Object):void
+			{
+				super.right = value;
+				l.right = value;
+
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[Event(name="resizeStart", type="flash.events.Event")]
+		[Event(name="resizeEnd", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:Line id="l" top="0" bottom="0" verticalCenter="0">
+		<s:stroke>
+			<s:SolidColorStroke color="{lineColor}" weight="{lineWeight}"/>
+		</s:stroke>
+	</s:Line>
+</s:Group>

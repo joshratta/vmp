@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<asl:AutoScrollingList xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   xmlns:asl="application.components.asl.*" 
+					   nativeDragDrop="fileList_nativeDragDropHandler(event)"
+					   nativeDragEnter="fileList_nativeDragEnterHandler(event)"
+					   dragEnabled="true" horizontalScrollPolicy="off"
+					   dataProvider="{assetManager.dataProvider}" 
+					   itemRenderer="application.view.renderers.FileBoxItemRenderer">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.core.IUIComponent;
+			import mx.managers.DragManager;
+			
+			import application.managers.AssetSourceManager;
+			
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahSource;
+			[Bindable]
+			private var assetManager:AssetSourceManager=AssetSourceManager.instance;
+			
+			private var _filterType:String;
+			
+			public function get filterType():String
+			{
+				return _filterType;
+			}
+			
+			override public function set dataProvider(value:IList):void
+			{
+				super.dataProvider = value;
+				setFilter();
+			}
+			
+			
+			public function set filterType(value:String):void
+			{
+				_filterType = value;
+				setFilter();
+				
+			}
+			
+			private function setFilter():void
+			{
+				if(dataProvider!=null&&(dataProvider is ArrayCollection))
+				{
+					if(_filterType!=null)
+					{
+						ArrayCollection(dataProvider).filterFunction=function(item:Object):Boolean
+						{
+							var s:GshahSource=item as GshahSource;
+							return s!=null&&s.type==_filterType;
+						}
+						ArrayCollection(dataProvider).refresh();
+					}
+					else if(ArrayCollection(dataProvider).filterFunction!=null)
+					{
+						ArrayCollection(dataProvider).filterFunction=null;
+						ArrayCollection(dataProvider).refresh();
+					}
+				}
+			}
+			
+			
+			protected function fileList_nativeDragEnterHandler(event:NativeDragEvent):void {
+				if(event.clipboard.formats.indexOf(ClipboardFormats.FILE_LIST_FORMAT)!=-1)
+				{
+					DragManager.acceptDragDrop(event.target as IUIComponent);	
+				}				
+			}
+			
+			protected function fileList_nativeDragDropHandler(event:NativeDragEvent):void {								
+				var dropFiles:Array = event.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				for each (var assetFile:File in dropFiles) 
+				{
+					GshahVideoController.instance.getMetadata(assetFile.nativePath);
+					
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<asl:layout>
+		<s:TileLayout paddingTop="0" paddingBottom="0" paddingLeft="0" paddingRight="0" verticalGap="0" horizontalGap="0" 
+					  horizontalAlign="center" verticalAlign="top"/>
+	</asl:layout>
+</asl:AutoScrollingList>

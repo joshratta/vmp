@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   width="100%" height="30" backgroundColor="#101010" borderVisible="false">
+	<fx:Script>
+		<![CDATA[
+			import application.managers.TimelineManager;
+			import application.managers.UndoRedoManager;
+			import application.managers.components.UndoRedoManagerItemType;
+			
+			import gshah.icons.CutIcon;
+			import gshah.icons.DivideIcon;
+			import gshah.icons.ZoomInIcon;
+			import gshah.icons.ZoomOutIcon;
+			
+			import sys.SystemSettings;
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			
+
+			private var _zoomScaleIndex:int=1;
+			[Bindable]
+			private var timelimeManager:TimelineManager = TimelineManager.instance;
+
+			protected function upScaleButtonon_clickHandler(event:MouseEvent):void
+			{
+				zoomScaleIndex++;
+			}
+			
+			protected function downScaleButton_clickHandler(event:MouseEvent):void
+			{
+				zoomScaleIndex--;
+			}
+			
+			[Bindable]
+			public function get zoomScaleIndex():int
+			{
+				return _zoomScaleIndex;
+			}
+			
+			public function set zoomScaleIndex(value:int):void
+			{
+				_zoomScaleIndex = value;
+			}
+			
+			protected function cutButton_clickHandler(event:MouseEvent):void
+			{
+				timelimeManager.cut();
+			}
+			
+			protected function fadeButton_clickHandler(event:MouseEvent):void
+			{
+				timelimeManager.fade();
+			}
+			
+		
+			
+		]]>
+	</fx:Script>
+	<s:HGroup gap="3" verticalAlign="middle" width="100%">
+		<s:Button id="upScaleButton" width="40"  height="28"  icon="{ZoomInIcon}" skinClass="application.skins.GrayButtonSkin" click="downScaleButton_clickHandler(event)" enabled="{zoomScaleIndex>0}"/>
+		<s:HSlider id="zoomSlide" minimum="0" maximum="4" value="@{zoomScaleIndex}" snapInterval="1" liveDragging="true" change="zoomScaleIndex=zoomSlide.value" showDataTip="false"/>
+		<s:Button id="downScaleButton" width="40" height="28" icon="{ZoomOutIcon}" skinClass="application.skins.GrayButtonSkin" click="upScaleButtonon_clickHandler(event)" enabled="{4>zoomScaleIndex}"/>
+		<s:Button id="cutButton" width="40"  height="28"  icon="{timelimeManager.cutting?CutIcon:DivideIcon}" skinClass="application.skins.GrayButtonSkin" click="cutButton_clickHandler(event)" enabled="{timelimeManager.currentItem!=null}"/>
+		<s:Button id="fadeButton" label="fade" color="0xffffff" height="28" skinClass="application.skins.DarkGrayButtonSkin" click="fadeButton_clickHandler(event)" enabled="{timelimeManager.currentItem!=null}"/>
+		
+		<s:Button label="&lt;" click="UndoRedoManager.instance.undo()" toolTip="undo {UndoRedoManagerItemType.getLabel(UndoRedoManager.instance.itemAt(UndoRedoManager.instance.currentIndex).type)}" enabled="{UndoRedoManager.instance.itemAt(UndoRedoManager.instance.currentIndex)!=null}"/>
+		<s:Button label="&gt;" click="UndoRedoManager.instance.redo()" toolTip="redo {UndoRedoManagerItemType.getLabel(UndoRedoManager.instance.itemAt(UndoRedoManager.instance.currentIndex+1).type)}"  enabled="{UndoRedoManager.instance.itemAt(UndoRedoManager.instance.currentIndex+1)!=null}"/>
+
+		<s:Spacer width="100%"/>
+		<s:Label styleName="ButtonBaseStyle" text="{SystemSettings.clientVersion}{SystemSettings.updatePath==SystemSettings.RELEASE_PATH?'':' (debug)'}" color="0xffffff"/>
+	</s:HGroup>  
+</s:BorderContainer>

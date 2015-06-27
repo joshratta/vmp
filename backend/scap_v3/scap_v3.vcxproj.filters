@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\common">
+      <UniqueIdentifier>{5d50451a-0f77-458e-9d06-c0c5c2937319}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\scap">
+      <UniqueIdentifier>{7c8de24b-626f-489f-b5dd-0506f0f17aec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\acap">
+      <UniqueIdentifier>{09396663-c044-477f-a45c-b77ab3c2f6e9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\audio.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\videoencoder.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\stdafx.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\targetver.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\const.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\compatibility.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="scap\scap.h">
+      <Filter>Header Files\scap</Filter>
+    </ClInclude>
+    <ClInclude Include="scap\scap_windows.h">
+      <Filter>Header Files\scap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\utils.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="scap\acap.h">
+      <Filter>Header Files\acap</Filter>
+    </ClInclude>
+    <ClInclude Include="scap\acap_windows.h">
+      <Filter>Header Files\acap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\pipes.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\socketutils.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="scap\scap_win_util.h">
+      <Filter>Header Files\scap</Filter>
+    </ClInclude>
+    <ClInclude Include="scap\scap_mac.h">
+      <Filter>Header Files\scap</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="scap_v3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

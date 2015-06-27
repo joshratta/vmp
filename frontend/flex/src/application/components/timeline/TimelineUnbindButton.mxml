@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:timeline="application.components.timeline.*" 
+		 mouseOver="over=true"
+		 mouseOut="over=false"
+		 blendMode="layer">
+	<fx:Script>
+		<![CDATA[
+			import gshah.icons.LockIcon;
+			
+			[Bindable]
+			private var over:Boolean;
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Button icon="{LockIcon}" verticalCenter="0" horizontalCenter="0"
+			  skinClass="application.skins.TransperentButtonSkin"/>
+	
+	<s:Group left="{width/2}" top="2" height="3" width="5" visible="{over}" blendMode="erase">
+		<s:Rect left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="0xffffff"/>
+			</s:fill>
+		</s:Rect>
+	</s:Group>
+</s:Group>

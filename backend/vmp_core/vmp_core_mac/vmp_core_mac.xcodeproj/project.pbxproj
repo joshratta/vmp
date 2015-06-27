@@ -1,0 +1,305 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		051EBDAD1B120DBF008453F1 /* vmp_core.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 051EBDAC1B120DBF008453F1 /* vmp_core.cpp */; };
+		051EBDAF1B120E18008453F1 /* libavcodec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDAE1B120E18008453F1 /* libavcodec.a */; };
+		051EBDB11B120E24008453F1 /* libavdevice.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDB01B120E24008453F1 /* libavdevice.a */; };
+		051EBDB31B120E31008453F1 /* libavfilter.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDB21B120E31008453F1 /* libavfilter.a */; };
+		051EBDB51B120E43008453F1 /* libavutil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDB41B120E43008453F1 /* libavutil.a */; };
+		051EBDB71B120E4F008453F1 /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDB61B120E4F008453F1 /* libbz2.a */; };
+		051EBDB91B120E5D008453F1 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDB81B120E5D008453F1 /* libz.a */; };
+		051EBDBB1B121009008453F1 /* libavformat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDBA1B121009008453F1 /* libavformat.a */; };
+		051EBDBD1B121015008453F1 /* libmp3lame.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDBC1B121015008453F1 /* libmp3lame.a */; };
+		051EBDBF1B121022008453F1 /* libswscale.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDBE1B121022008453F1 /* libswscale.a */; };
+		051EBDC21B1210C8008453F1 /* vmp_core.exe in CopyFiles */ = {isa = PBXBuildFile; fileRef = 051EBDA21B120D86008453F1 /* vmp_core.exe */; };
+		05C0379A1B161D9600D5B922 /* libswresample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 051EBDC01B12102E008453F1 /* libswresample.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		051EBDA01B120D86008453F1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = /Applications/VideoMotionPro.app/Contents/Resources/ffmpegLib/mac;
+			dstSubfolderSpec = 0;
+			files = (
+				051EBDC21B1210C8008453F1 /* vmp_core.exe in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		051EBDA21B120D86008453F1 /* vmp_core.exe */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vmp_core.exe; sourceTree = BUILT_PRODUCTS_DIR; };
+		051EBDAC1B120DBF008453F1 /* vmp_core.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vmp_core.cpp; path = ../vmp_core.cpp; sourceTree = "<group>"; };
+		051EBDAE1B120E18008453F1 /* libavcodec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavcodec.a; path = ../../ffmpeg/lib/libavcodec.a; sourceTree = "<group>"; };
+		051EBDB01B120E24008453F1 /* libavdevice.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavdevice.a; path = ../../ffmpeg/lib/libavdevice.a; sourceTree = "<group>"; };
+		051EBDB21B120E31008453F1 /* libavfilter.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavfilter.a; path = ../../ffmpeg/lib/libavfilter.a; sourceTree = "<group>"; };
+		051EBDB41B120E43008453F1 /* libavutil.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavutil.a; path = ../../ffmpeg/lib/libavutil.a; sourceTree = "<group>"; };
+		051EBDB61B120E4F008453F1 /* libbz2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbz2.a; path = ../../ffmpeg/lib/libbz2.a; sourceTree = "<group>"; };
+		051EBDB81B120E5D008453F1 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../../ffmpeg/lib/libz.a; sourceTree = "<group>"; };
+		051EBDBA1B121009008453F1 /* libavformat.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavformat.a; path = ../../ffmpeg/lib/libavformat.a; sourceTree = "<group>"; };
+		051EBDBC1B121015008453F1 /* libmp3lame.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmp3lame.a; path = ../../ffmpeg/lib/libmp3lame.a; sourceTree = "<group>"; };
+		051EBDBE1B121022008453F1 /* libswscale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libswscale.a; path = ../../ffmpeg/lib/libswscale.a; sourceTree = "<group>"; };
+		051EBDC01B12102E008453F1 /* libswresample.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libswresample.a; path = ../../ffmpeg/lib/libswresample.a; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		051EBD9F1B120D86008453F1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				05C0379A1B161D9600D5B922 /* libswresample.a in Frameworks */,
+				051EBDBF1B121022008453F1 /* libswscale.a in Frameworks */,
+				051EBDBD1B121015008453F1 /* libmp3lame.a in Frameworks */,
+				051EBDBB1B121009008453F1 /* libavformat.a in Frameworks */,
+				051EBDB91B120E5D008453F1 /* libz.a in Frameworks */,
+				051EBDB71B120E4F008453F1 /* libbz2.a in Frameworks */,
+				051EBDB51B120E43008453F1 /* libavutil.a in Frameworks */,
+				051EBDB31B120E31008453F1 /* libavfilter.a in Frameworks */,
+				051EBDB11B120E24008453F1 /* libavdevice.a in Frameworks */,
+				051EBDAF1B120E18008453F1 /* libavcodec.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		051EBD991B120D86008453F1 = {
+			isa = PBXGroup;
+			children = (
+				051EBDC01B12102E008453F1 /* libswresample.a */,
+				051EBDBE1B121022008453F1 /* libswscale.a */,
+				051EBDBC1B121015008453F1 /* libmp3lame.a */,
+				051EBDBA1B121009008453F1 /* libavformat.a */,
+				051EBDB81B120E5D008453F1 /* libz.a */,
+				051EBDB61B120E4F008453F1 /* libbz2.a */,
+				051EBDB41B120E43008453F1 /* libavutil.a */,
+				051EBDB21B120E31008453F1 /* libavfilter.a */,
+				051EBDB01B120E24008453F1 /* libavdevice.a */,
+				051EBDAE1B120E18008453F1 /* libavcodec.a */,
+				051EBDAC1B120DBF008453F1 /* vmp_core.cpp */,
+				051EBDA41B120D86008453F1 /* vmp_core_mac */,
+				051EBDA31B120D86008453F1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		051EBDA31B120D86008453F1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				051EBDA21B120D86008453F1 /* vmp_core.exe */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		051EBDA41B120D86008453F1 /* vmp_core_mac */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = vmp_core_mac;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		051EBDA11B120D86008453F1 /* vmp_core_mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 051EBDA91B120D86008453F1 /* Build configuration list for PBXNativeTarget "vmp_core_mac" */;
+			buildPhases = (
+				051EBD9E1B120D86008453F1 /* Sources */,
+				051EBD9F1B120D86008453F1 /* Frameworks */,
+				051EBDA01B120D86008453F1 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = vmp_core_mac;
+			productName = vmp_core_mac;
+			productReference = 051EBDA21B120D86008453F1 /* vmp_core.exe */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		051EBD9A1B120D86008453F1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0630;
+				ORGANIZATIONNAME = gshah;
+				TargetAttributes = {
+					051EBDA11B120D86008453F1 = {
+						CreatedOnToolsVersion = 6.3.2;
+					};
+				};
+			};
+			buildConfigurationList = 051EBD9D1B120D86008453F1 /* Build configuration list for PBXProject "vmp_core_mac" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 051EBD991B120D86008453F1;
+			productRefGroup = 051EBDA31B120D86008453F1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				051EBDA11B120D86008453F1 /* vmp_core_mac */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		051EBD9E1B120D86008453F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				051EBDAD1B120DBF008453F1 /* vmp_core.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		051EBDA71B120D86008453F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		051EBDA81B120D86008453F1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		051EBDAA1B120D86008453F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../ffmpeg/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					../../ffmpeg/lib,
+					"$(inherited)",
+				);
+				PRODUCT_MODULE_NAME = "$(PRODUCT_NAME:c99extidentifier)";
+				PRODUCT_NAME = vmp_core.exe;
+			};
+			name = Debug;
+		};
+		051EBDAB1B120D86008453F1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_OPTIMIZATION_LEVEL = fast;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../ffmpeg/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					../../ffmpeg/lib,
+					"$(inherited)",
+				);
+				PRODUCT_NAME = vmp_core.exe;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		051EBD9D1B120D86008453F1 /* Build configuration list for PBXProject "vmp_core_mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				051EBDA71B120D86008453F1 /* Debug */,
+				051EBDA81B120D86008453F1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		051EBDA91B120D86008453F1 /* Build configuration list for PBXNativeTarget "vmp_core_mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				051EBDAA1B120D86008453F1 /* Debug */,
+				051EBDAB1B120D86008453F1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 051EBD9A1B120D86008453F1 /* Project object */;
+}

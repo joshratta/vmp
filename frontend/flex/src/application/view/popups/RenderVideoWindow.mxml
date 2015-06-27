@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							 xmlns:s="library://ns.adobe.com/flex/spark" 
+							 xmlns:mx="library://ns.adobe.com/flex/mx" 
+							 xmlns:popups="application.view.popups.*" 
+							 initialize="bordercontainer_initializeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable]
+			private var outPath:String;
+			
+			protected function titlewindow_closeHandler(event:CloseEvent):void
+			{
+				if(event.detail==Alert.OK)
+				{
+					var progressWindow:VideoRenderWindow = new VideoRenderWindow();
+					progressWindow.setRender(outPath,presetDropDownList.selectedItem.width,presetDropDownList.selectedItem.height,qualityDropDownList.selectedItem.data);
+					PopUpManager.addPopUp(progressWindow, FlexGlobals.topLevelApplication as DisplayObject, true);
+					PopUpManager.centerPopUp(progressWindow);
+				}
+				close();
+			}
+			
+			protected function browseButton_clickHandler(event:MouseEvent):void
+			{
+				var _file:File=new File;
+				_file.addEventListener(Event.SELECT, outFileSelectedHandler);
+				_file.browseForSave("Choose output file");
+				
+			}
+			protected function outFileSelectedHandler(event:Event):void
+			{
+				var _file:File=event.target as File;
+				outPath = _file.nativePath.replace(/\\/g, File.separator);
+				if(outPath.indexOf(".flv")==-1)
+				{
+					outPath+=".flv";
+				}
+			}
+			
+			protected function presetDropDownList_labelField(item:Object):String
+			{
+				return [item.width,item.height].join('x');
+			}
+			
+			protected function bordercontainer_initializeHandler(event:FlexEvent):void
+			{
+				addEventListener(CloseEvent.CLOSE,titlewindow_closeHandler);
+			}
+			[Bindable]
+			private var running:Boolean;
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%" gap="10"
+			  paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+		<s:Label paddingLeft="20" text="Create Your Project Into a Video" 
+				 styleName="ButtonBaseStyle" color="0xffffff" fontSize="24"/>
+		<s:Spacer height="30"/>
+		<s:Label text="Specify the Name and Directory of Your .FLV File" 
+				 styleName="ButtonBaseStyle" color="0xffffff" fontSize="24"/>
+		<s:HGroup width="100%">
+			<s:TextInput text="{outPath}" fontSize="24" width="100%" editable="false" contentBackgroundColor="0xffffff"/>
+			<s:Button id="browseButton" label="Browse" fontSize="24" height="100%"
+					  click="browseButton_clickHandler(event)" enabled="{!running}"
+					  color="0xffffff" chromeColor="#109C9C" skinClass="application.skins.IconDisplayButtonSkin"/>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:Label text="Preset:"  color="0xffffff" width="120"
+					 styleName="ButtonBaseStyle" fontSize="24"/>
+			<s:DropDownList id="presetDropDownList" width="100%" height="100%" selectedIndex="1"
+							requireSelection="true" labelFunction="presetDropDownList_labelField">
+				<s:dataProvider>
+					<s:ArrayList>
+						<fx:Object width="1920" height="1080"/>
+						<fx:Object width="1280" height="720"/>
+						<fx:Object width="1024" height="576"/>
+						<fx:Object width="768" height="432"/>
+						<fx:Object width="512" height="288"/>
+						<fx:Object width="256" height="144"/>
+					</s:ArrayList>
+				</s:dataProvider>
+			</s:DropDownList>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:Label text="File Size:"  color="0xffffff" width="120"
+					 styleName="ButtonBaseStyle" fontSize="24"/>
+			<s:DropDownList id="qualityDropDownList" width="100%"
+							requireSelection="true" height="100%">
+				<s:dataProvider>
+					<s:ArrayList>
+						<fx:Object label="Highest" data="16M"/>
+						<fx:Object label="High" data="8M"/>
+						<fx:Object label="Medium" data="4M"/>
+						<fx:Object label="Low" data="2M"/>
+					</s:ArrayList>
+				</s:dataProvider>
+			</s:DropDownList>
+		</s:HGroup>
+		<s:Spacer height="30"/>
+		<s:HGroup width="100%" enabled="{!running}">
+			<s:Button id="createVideoButton" label="Create Video" fontSize="24" height="100%" enabled="{outPath!=null}"
+					  click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE,false,false,Alert.OK))" 
+					  color="0xffffff" chromeColor="#FF3B42"  styleName="PopUpButton" buttonMode="true"/>
+			<s:Button id="cancelButton" label="Cancel" fontSize="24" width="120" height="36" 
+					  click="dispatchEvent(new CloseEvent(CloseEvent.CLOSE))" buttonMode="true" 
+					  color="0xffffff" chromeColor="0xAAAAAA"  styleName="PopUpButton"/>
+		</s:HGroup>  
+	</s:VGroup>  
+	
+	
+</popups:PopUpBorderContainer>

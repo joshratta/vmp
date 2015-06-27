@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+ADOBE SYSTEMS INCORPORATED
+Copyright 2008 Adobe Systems Incorporated
+All Rights Reserved.
+
+NOTICE: Adobe permits you to use, modify, and distribute this file
+in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- The default skin class for a Spark ToggleButton component.  
+
+@see spark.components.ToggleButton
+
+@langversion 3.0
+@playerversion Flash 10
+@playerversion AIR 1.5
+@productversion Flex 4
+-->
+<s:SparkButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
+				   alpha.disabledStates="0.5">
+	<fx:Metadata>[HostComponent("spark.components.ButtonBarButton")]</fx:Metadata>
+	
+	<!-- host component -->
+	<fx:Script fb:purpose="styling">
+		
+	
+		import gshah.icons.AlignmentBorderIcon;
+		
+		/* Define the skin elements that should not be colorized. 
+		For toggle button, the graphics are colorized but the label is not. */
+		static private const exclusions:Array = ["labelDisplay", 'iconDisplay'];
+		
+		/**
+		 * @private
+		 */    
+		override public function get colorizeExclusions():Array {return exclusions;}
+		
+		/**
+		 * @private
+		 */
+		
+		[Bindable]
+		private var borderIcon:AlignmentBorderIcon;
+		
+		override protected function initializationComplete():void
+		{
+			borderIcon=new AlignmentBorderIcon;
+			borderIcon.scaleX=borderIcon.scaleY=2;
+			
+			useChromeColor = true;
+			super.initializationComplete();
+		}
+		
+		/**
+		 * @private
+		 */
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number) : void
+		{
+			var cr:Number = getStyle("cornerRadius");
+			
+			if (cornerRadius != cr)
+			{
+				cornerRadius = cr;
+			}
+			
+			
+			if(iconDisplay!=null)
+			{
+				iconDisplay.x=100;
+				iconDisplay.y=100;
+				
+			}
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
+		}
+		
+		private var cornerRadius:Number = 2;
+	</fx:Script>
+	
+	<!-- states -->
+	<s:states>
+		<s:State name="up" />
+		<s:State name="over" stateGroups="overStates" />
+		<s:State name="down" stateGroups="downStates" />
+		<s:State name="disabled" stateGroups="disabledStates" />
+		<s:State name="upAndSelected" stateGroups="selectedStates, selectedUpStates" />
+		<s:State name="overAndSelected" stateGroups="overStates, selectedStates" />
+		<s:State name="downAndSelected" stateGroups="downStates, selectedStates" />
+		<s:State name="disabledAndSelected" stateGroups="selectedUpStates, disabledStates, selectedStates" />
+	</s:states>
+	<s:Rect left="5" right="5" top="0" bottom="0" radiusX="3" >
+		<s:fill>
+			<s:SolidColor
+				color.selectedUpStates="0x444444"
+				color.overAndSelected="0x4C4C4C"
+				color.downAndSelected="0x545454"
+				color="0x2C2C2C"
+				color.over="0x343434"
+				color.down="0x3C3C3C"
+				alpha="1"/>
+		</s:fill>
+	</s:Rect>
+	<s:BitmapImage id="borderDisplay" source="{AlignmentBorderIcon}" smooth="true" smoothingQuality="high" verticalCenter="0" horizontalCenter="0"/>
+	<s:BitmapImage id="iconDisplay" visible="false"/>
+	<s:BitmapImage id="iconRealDisplay" source="{iconDisplay.source}" smooth="true" smoothingQuality="high" verticalCenter="0" horizontalCenter="0"/>
+
+</s:SparkButtonSkin>

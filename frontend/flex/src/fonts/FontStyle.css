@@ -1,0 +1,104 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+@font-face {
+	src:url("opensans/OpenSans-Regular.ttf");
+	fontFamily: OpenSans;
+	embedAsCFF: true;
+	
+}
+@font-face {
+	src:url("opensans/OpenSans-Bold.ttf");
+	fontFamily: OpenSans;
+	fontWeight: bold;
+	embedAsCFF: true;
+	
+}
+@font-face {
+	src:url("opensans/OpenSans-Italic.ttf");
+	fontFamily: OpenSans;
+	fontStyle: italic;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("opensans/OpenSans-BoldItalic.ttf");
+	fontFamily: OpenSans;
+	fontWeight: bold;
+	fontStyle: italic;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src:url("opensans/OpenSans-ExtraBold.ttf");
+	fontFamily: OpenSansExtrabold;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("opensans/OpenSans-ExtraBoldItalic.ttf");
+	fontFamily: OpenSansExtrabold;
+	embedAsCFF: true;
+	fontStyle: italic;
+}
+@font-face {
+	src:url("opensans/OpenSans-Semibold.ttf");
+	fontFamily: OpenSansSemibold;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("opensans/OpenSans-SemiboldItalic.ttf");
+	fontFamily: OpenSansSemibold;
+	embedAsCFF: true;
+	fontStyle: italic;
+}
+@font-face {
+	src:url("opensans/OpenSans-Light.ttf");
+	fontFamily: OpenSansLight;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("opensans/OpenSans-LightItalic.ttf");
+	fontFamily: OpenSansLight;
+	embedAsCFF: true;
+	fontStyle: italic;
+}
+@font-face {
+	src:url("arial/Arial-Regular.ttf");
+	fontFamily: Arial;
+	embedAsCFF: true;
+	
+}
+@font-face {
+	src:url("arial/Arial-Bold.ttf");
+	fontFamily: Arial;
+	fontWeight: bold;
+	embedAsCFF: true;
+	
+}
+s|Label {
+	fontFamily: OpenSans;
+	fontSize: 14;
+} 
+
+.ButtonThinStyle{
+	fontFamily: OpenSansLight;
+	fontSize: 13;
+}
+
+.ButtonBaseStyle{
+	fontFamily: OpenSansSemibold;
+	fontSize: 13;
+}
+
+.TopLabelStyle{
+	color:#FFFFFF;
+	fontSize:16;
+}
+
+s|DropDownList{
+	skinClass:ClassReference("application.skins.AppDropDownListSkin");
+	alternatingItemColors:#29363f;
+	borderVisible:false;
+	color:#FFFFFF;
+	cornerRadius:5;
+}

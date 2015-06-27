@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"  
+				   xmlns:components="application.components.*"
+				   backgroundColor="#333333" borderVisible="false" >
+	<fx:Script>
+		<![CDATA[
+			import spark.events.TextOperationEvent;
+			[Bindable]
+			public var value:Number=0;
+			
+			protected function greenScreenToleranceInput_changeHandler(event:TextOperationEvent):void
+			{
+				value=parseFloat(numberInput.text);
+				if(isNaN(value))
+				{
+					value=0;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:RichEditableText id="numberInput" color="0xffffff" 
+						text="{value}%" 
+						paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
+						change="greenScreenToleranceInput_changeHandler(event)"  
+						verticalCenter="0" horizontalCenter="0" restrict="[0-9]" maxChars="3"/>
+</s:BorderContainer>

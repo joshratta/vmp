@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<popups:PopUpBorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   xmlns:progressbar="application.components.progressbar.*" 
+				   xmlns:popups="application.view.popups.*" 
+				   width="400" xmlns:gshah="gshah.*">
+	<fx:Script>
+		<![CDATA[
+			import gshah.utils.FfmpegVideoUtils;
+			
+			import mx.events.CloseEvent;
+			
+			import sys.SystemSettings;
+			
+			private var outPath:String;
+			private var _currentTime:Number;
+			
+			[Bindable]
+			private var es:EventDispatcher;
+			
+			private var timestamp:Number;
+			
+			public function setRender(path:String,videoWidth:Number,videoHeight:Number,videoBitrate:String):void
+			{
+				es=new EventDispatcher;
+				timestamp=getTimer();
+				outPath = path;
+				videoController.exitHandler=onCompleteRender;
+				videoController.previewVideo.width=videoWidth;
+				videoController.previewVideo.height=videoHeight;
+
+				if(SystemSettings.isMac)
+				{
+					videoController.ffmpegParams=[SystemSettings.getBinPath(),
+						FfmpegVideoUtils.COMMAND_FORMAT, 'flv', 
+						FfmpegVideoUtils.COMMAND_INPUT, '-', 
+						FfmpegVideoUtils.COMMAND_RESOLUTION, [videoWidth,videoHeight].join('x'),
+						FfmpegVideoUtils.COMMAND_FRAMERATE, '30',
+						'-strict','-2',
+						'-g','100',
+						FfmpegVideoUtils.COMMAND_VIDEO_BITRATE, videoBitrate,
+						'"'+outPath+'"', FfmpegVideoUtils.COMMAND_REWRITE];
+				}
+				else
+				{
+					videoController.ffmpegParams=[SystemSettings.getBinPath(),
+						FfmpegVideoUtils.COMMAND_FORMAT, 'flv', 
+						FfmpegVideoUtils.COMMAND_INPUT, '-', 
+						FfmpegVideoUtils.COMMAND_RESOLUTION, [videoWidth,videoHeight].join('x'),
+						FfmpegVideoUtils.COMMAND_FRAMERATE, '30',
+						'-g','100',
+						FfmpegVideoUtils.COMMAND_VIDEO_BITRATE, videoBitrate,
+						'"'+outPath+'"', FfmpegVideoUtils.COMMAND_REWRITE];
+				}
+				
+				videoController.initialize();
+			}
+			
+			protected function onCompleteRender():void
+			{
+				if(outPath == null)
+					return;
+				timestamp=(getTimer()-timestamp)/1000;
+				RendererAlert.show('Done processing video, took '+timestamp+' seconds ('+(timestamp*100/videoController.duration).toFixed(2)+'% of duration), see result as "'+outPath+'".','Render Video',doneAlert_closeHandler);
+				outPath=null;
+			}
+			
+			private function doneAlert_closeHandler(event:CloseEvent=null):void
+			{
+				close();
+			}
+			
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				videoController.exitHandler=null;
+				videoController.close();
+				callDeleteOutFile();
+				doneAlert_closeHandler();
+			}
+			
+			private function callDeleteOutFile():void
+			{
+				try
+				{
+					(new File(outPath)).deleteFile();
+				} 
+				catch(error:Error) 
+				{
+					callLater(callDeleteOutFile);
+				}
+				
+			}
+			
+			[Bindable]
+			public function get currentTime():Number
+			{
+				return _currentTime;
+			}
+			
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+				es.dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS,false,false,_currentTime,videoController.duration));
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<gshah:GshahVideoController id="videoController" renderMode="true" currentTime="@{currentTime}"/>
+	</fx:Declarations>
+	<s:VGroup top="50" bottom="50" left="40" right="40" gap="20">
+		<s:Label text="Video Rendering..." color="#ffffff" styleName="ButtonBaseStyle"/>
+		<progressbar:SparkProgressBar id="loadBar" width="100%" eventSource="{es}" percentLabel="% complete" labelGap="20"/>
+		<s:Group width="100%">
+			<s:Button styleName="PopUpButton" label="Cancel" horizontalCenter="0" width="120" height="36" click="button_clickHandler(event)"/>
+		</s:Group>
+	</s:VGroup>
+</popups:PopUpBorderContainer>

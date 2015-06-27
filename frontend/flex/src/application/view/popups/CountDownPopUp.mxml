@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" cornerRadius="10"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   creationComplete="bordercontainer_creationCompleteHandler(event)"
+				   backgroundColor="0" borderColor="0xffffff" borderWeight="2">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import gshah.GshahDeviceCapture;
+			import gshah.utils.GraphicUtils;
+			
+			[Bindable]
+			public var parentDisplayObject:DisplayObject;
+			
+			protected function bordercontainer_creationCompleteHandler(event:FlexEvent):void
+			{
+				if(parentDisplayObject!=null)
+				{
+					parentDisplayObject.visible=false;
+				}
+				startCountDown();
+			}
+			
+			private var countTimeStart:Number;
+			protected function startCountDown():void
+			{
+				countNumber=GshahDeviceCapture.RECORDING_DELAY/1000;
+				countTimeStart=(new Date).time;
+				countDownUI.addEventListener(Event.ENTER_FRAME,countDownUI_enterFrameHandler);
+			}
+			
+			[Bindable]
+			private var countNumber:int=0;
+			
+			protected function countDownUI_enterFrameHandler(event:Event):void
+			{
+				var countTime:Number=(new Date).time-countTimeStart;
+				countDownUI.graphics.clear();
+				countNumber=Math.ceil((GshahDeviceCapture.RECORDING_DELAY-countTime)/1000);
+				if(countTime<=GshahDeviceCapture.RECORDING_DELAY)
+				{
+					var arcAngle:Number=countTime*360/GshahDeviceCapture.RECORDING_DELAY ;
+					var radius:Number=countDownUI.width/2;
+					countDownUI.graphics.lineStyle(5,0x666666);
+					countDownUI.graphics.drawCircle(radius,radius,radius)
+					countDownUI.graphics.lineStyle(5,0xffffff);
+					GraphicUtils.drawArc(countDownUI.graphics,radius,radius,radius,-90,arcAngle,arcAngle);
+				}
+				else
+				{
+					countDownUI.removeEventListener(Event.ENTER_FRAME,countDownUI_enterFrameHandler);
+					if(parentDisplayObject!=null)
+					{
+						parentDisplayObject.visible=true;
+					}
+					if(exitHandler!=null)
+					{
+						exitHandler();
+					}
+					PopUpManager.removePopUp(this);
+					
+				}
+			}
+			public var exitHandler:Function;
+			[Bindable]
+			public var labelText:String="Press Stop to finish the recording";
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" paddingTop="50" 
+			  paddingLeft="10" paddingRight="10" paddingBottom="20" gap="15">
+		<s:Label text="Preparing to Record"
+				 styleName="ButtonBaseStyle" fontSize="48" color="0xffffff" fontWeight="bold"/>
+		<s:Label text="{labelText}" 
+				 styleName="ButtonBaseStyle" fontSize="32" color="0xffffff" fontWeight="bold"/>
+		<s:Group>
+			<mx:UIComponent id="countDownUI" width="100" height="100" verticalCenter="0" horizontalCenter="0"/>
+			<s:Label verticalCenter="0" horizontalCenter="0"  text="{countNumber}" visible="{countNumber>0}" 
+					 styleName="ButtonBaseStyle" fontSize="48" color="0xffffff" fontWeight="bold"/>
+		</s:Group>
+	</s:VGroup>  
+	
+	
+	
+</s:BorderContainer>

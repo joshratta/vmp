@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   enabled="false"
+					   xmlns:view="application.view.*" xmlns:gshah="gshah.*"
+					   backgroundColor="#121212" minWidth="950" minHeight="700" showStatusBar="false"
+					   closing="windowedapplication_closingHandler(event)"
+					   initialize="windowedapplication_initializeHandler(event)"
+					   title="Video Motion Pro" 
+					   creationComplete="windowedapplication1_creationCompleteHandler(event)" 
+					   xmlns:components="application.components.*" 
+					   xmlns:progressbar="application.components.progressbar.*" 
+					   xmlns:managers="application.managers.*" 
+					   invoke="windowedapplication_invokeHandler(event)"
+					   xmlns:ns="http://updater.riaspace.com/" xmlns:nau="com.riaspace.nau.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.riaspace.nau.NativeApplicationUpdater;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import air.update.events.StatusUpdateEvent;
+			import air.update.events.UpdateEvent;
+			
+			import application.managers.HotKeyManager;
+			import application.managers.ProjectManger;
+			import application.view.popups.LicensingWindow;
+			
+			import gshah.GshahVideoController;
+			import gshah.events.GshahEvent;
+			import gshah.intros.BlueCircleLogoAnimationController;
+			import gshah.utils.GshahUtils;
+			
+			import sys.SystemSettings;
+			
+			private var firstClosing:Boolean;
+			
+			
+			protected function windowedapplication_initializeHandler(event:FlexEvent):void
+			{
+				if(!nativeApplication.isSetAsDefaultApplication('vfs'))
+				{
+					nativeApplication.setAsDefaultApplication('vfs');
+				}
+				if(SharedObject.getLocal('gshah').data["updatePath"]!=null)
+				{
+					SystemSettings.updatePath=SharedObject.getLocal('gshah').data["updatePath"];
+				}
+				SystemSettings.isMac=Capabilities.os.indexOf('Mac')!=-1;
+				if(!SystemSettings.isMac)
+				{
+					enabled=false;
+					var helper:GshahUtils=new GshahUtils;
+					helper.addEventListener(GshahEvent.GSHAH_COMPLETE,onGetShortAppPath);
+					helper.getShortPathes([SystemSettings.binPath,SystemSettings.tempPath]);
+				}
+				maximize();
+				
+				var appXML:XML = NativeApplication.nativeApplication.applicationDescriptor;
+				var ns:Namespace = appXML.namespace();
+				SystemSettings.clientVersion = appXML.ns::versionLabel;
+				HotKeyManager.instance.initialize();
+				
+				updater.initialize();
+			}
+			
+			[Bindable]
+			private var gc:BlueCircleLogoAnimationController=new BlueCircleLogoAnimationController;
+			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
+			{
+				setFocus();
+				firstClosing=true;
+				GshahVideoController.instance.initialize();
+				ProjectManger.instance.startAuto();
+				if(SharedObject.getLocal('gshah').data["licenseRole"]!=null&&SystemSettings.LICENSING_TYPES.indexOf(SharedObject.getLocal('gshah').data["licenseRole"])!=-1)
+				{
+					SystemSettings.licensingType=SharedObject.getLocal('gshah').data["licenseRole"];
+					//SystemSettings.licensingType=SystemSettings.LICENSING_TYPE_OTO1;
+					trace('role: '+SystemSettings.licensingType);
+				}
+				else
+				{
+					var licensingWindow:LicensingWindow=new LicensingWindow;
+					licensingWindow.autoLogin=true;
+					PopUpManager.addPopUp(licensingWindow,this,true);
+					PopUpManager.centerPopUp(licensingWindow);				
+				}
+			}		
+			
+			protected function windowedapplication_closingHandler(event:Event):void
+			{
+				if(firstClosing)
+				{
+					enabled=false;
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					firstClosing=false;
+					GshahVideoController.instance.close();
+					
+				}
+			}
+			
+			
+			protected function onGetShortAppPath(event:GshahEvent):void
+			{
+				var outArr:Array=event.data.split("\r\n");
+				if(outArr.length>=4)
+				{
+					SystemSettings.binPath=outArr[2];
+					SystemSettings.tempPath=outArr[3];
+				}
+			}
+			
+			
+			private function onUpdaterInit(event:UpdateEvent):void 
+			{
+				if(updater.currentState==NativeApplicationUpdater.READY)
+				{
+					if(SystemSettings.updateAvailable)
+					{
+						SystemSettings.updateAvailable=false;
+						SystemSettings.messageCount--;
+					}
+					updater.currentState=NativeApplicationUpdater.BEFORE_CHECKING;
+					updater.checkForUpdate();
+				}
+			}
+			
+			
+			protected function updater_downloadStartHandler(event:UpdateEvent):void
+			{
+				LoadingContainer.instance.start(updater,'Updating');
+			}
+			
+			protected function updater_updateStatusHandler(event:StatusUpdateEvent):void
+			{
+				if(!SystemSettings.updateAvailable)
+				{
+					SystemSettings.updateAvailable=event.available;
+					if(SystemSettings.updateAvailable)
+					{
+						SystemSettings.messageCount++;
+					}
+				}
+			}
+			public var fileNameToOpen:String;
+			protected function windowedapplication_invokeHandler(event:InvokeEvent):void
+			{
+				
+				if (event.arguments.length>0&&event.arguments[0].indexOf('.vfs')!=-1) 
+				{
+					fileNameToOpen=event.arguments[0];
+					if(enabled)
+					{
+						GshahVideoController.instance.restart();
+					}
+				} 
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<nau:NativeApplicationUpdater id="updater" downloadStart="updater_downloadStartHandler(event)"
+									  updateURL="http://{SystemSettings.UPDATE_URL}/{SystemSettings.updatePath}/update.xml"
+									  initialized="onUpdaterInit(event)" 
+									  updateStatus="updater_updateStatusHandler(event)"/>
+		
+	</fx:Declarations>
+	
+	<fx:Style source="fonts/FontStyle.css"/>
+	<fx:Style source="styles/MainStyle.css"/>
+	<view:VideoEditorView width="100%" height="100%" enabled="{!loadingContainer.visible}"/>
+	<components:LoadingContainer id="loadingContainer"/>
+</s:WindowedApplication>

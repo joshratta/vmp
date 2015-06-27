@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   width="100%" height="100%" backgroundColor="#212021" borderVisible="false"
+				   contentBackgroundColor="#212021" minWidth="190" minHeight="400" xmlns:progressbar="application.components.progressbar.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			import application.events.AppEvent;
+			import application.managers.ProjectManger;
+			import application.view.popups.CreateProjectWindow;
+			import application.view.popups.RenderVideoWindow;
+			import application.view.popups.ScreenRecorderWindow;
+			import application.view.popups.SettingsWindow;
+			import application.view.popups.WebCamWindow;
+			
+			import gshah.GshahVideoController;
+			import gshah.entities.GshahAssetType;
+			import gshah.icons.CreateProjectIcon;
+			import gshah.icons.ImportMediaIcon;
+			import gshah.icons.OpenProjectIcon;
+			import gshah.icons.RenderVideoIcon;
+			import gshah.icons.SaveProjectIcon;
+			import gshah.icons.ScreenCaptureIcon;
+			import gshah.icons.SettingsIcon;
+			import gshah.icons.WebCamIcon;
+			import gshah.icons.YouTubeUploadIcon;
+			
+			
+			protected function importMediaButton_clickHandler(event:MouseEvent):void
+			{
+				var assetFile:File=new File;
+				assetFile.addEventListener(FileListEvent.SELECT_MULTIPLE, assetFile_selectHandler);
+				assetFile.browseForOpenMultiple("Choose media files",GshahAssetType.getFileFilters());
+				
+			}
+			
+			protected function assetFile_selectHandler(event:FileListEvent):void
+			{
+				for each (var assetFile:File in event.files) 
+				{
+					GshahVideoController.instance.getMetadata(assetFile.nativePath);
+					
+				}
+			}
+			
+			protected function renderVideoButton_clickHandler(event:MouseEvent):void
+			{
+				var renderPopUp:RenderVideoWindow=new RenderVideoWindow;
+				PopUpManager.addPopUp(renderPopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(renderPopUp);
+			}
+			
+			protected function createProjectButton_clickHandler(event:MouseEvent):void
+			{
+				var createProjectPopUp:CreateProjectWindow=new CreateProjectWindow;
+				
+				PopUpManager.addPopUp(createProjectPopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(createProjectPopUp);
+			}
+			
+			
+			protected function saveProjectButton_clickHandler(event:MouseEvent):void
+			{
+				var _file:File=new File;
+				_file.addEventListener(Event.SELECT, outFileSelectedHandler);
+				_file.browseForSave("Choose output file");
+			}
+			
+			
+			protected function outFileSelectedHandler(event:Event):void
+			{
+				var _file:File=event.target as File;
+				var outPath:String = _file.nativePath.replace(/\\/g, File.separator);
+				if(outPath.indexOf(".vfs")==-1)
+				{
+					outPath+=".vfs";
+				}
+				ProjectManger.instance.save(new File(outPath));
+				
+			}
+			
+			protected function screenCaptureButton_clickHandler(event:MouseEvent):void
+			{
+				var screeCapturePopUp:ScreenRecorderWindow=new ScreenRecorderWindow;
+				PopUpManager.addPopUp(screeCapturePopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(screeCapturePopUp);
+			}
+			
+			protected function webCamButton_clickHandler(event:MouseEvent):void
+			{
+				var webCamPopUp:WebCamWindow=new WebCamWindow;
+				PopUpManager.addPopUp(webCamPopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(webCamPopUp);
+			}
+			
+			
+			
+			protected function openProjectButton_clickHandler(event:MouseEvent):void
+			{
+				var _file:File=new File;
+				_file.addEventListener(Event.SELECT, inFileSelectedHandler);
+				_file.browseForOpen("Choose intput file",[new FileFilter('VideoMotionPro Project','*.vfs')]);
+			}
+			
+			protected function inFileSelectedHandler(event:Event):void
+			{
+				FlexGlobals.topLevelApplication.fileNameToOpen=(event.target as File).nativePath;
+				GshahVideoController.instance.restart();
+			}
+			
+			protected function settingsButton_clickHandler(event:MouseEvent):void
+			{
+				var settingsPopUp:SettingsWindow=new SettingsWindow;
+				
+				PopUpManager.addPopUp(settingsPopUp,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(settingsPopUp);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Metadata>
+		[Event(name="YouTubePopUp", type="application.events.AppEvent")]
+	</fx:Metadata>
+	<s:VGroup top="15" left="10" gap="3">
+		<s:Label text="CREATE PROJECT" fontSize="16" color="#999999"/>
+		<s:Button id="createProjectButton" label="Create New Project"  icon="{CreateProjectIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin" click="createProjectButton_clickHandler(event)"/>
+		<s:Button id="openProjectButton" label="Open Project"  icon="{OpenProjectIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin"
+				  click="openProjectButton_clickHandler(event)"/>
+		<s:Button id="saveProjectButton" label="Save Project"  icon="{SaveProjectIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin"
+				  click="saveProjectButton_clickHandler(event)"/>
+		<s:Button id="importMediaButton" label="Import Media" click="importMediaButton_clickHandler(event)" icon="{ImportMediaIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin"/>
+		<s:Spacer height="4"/>
+		<s:Label text="VIDEO EXPORT" fontSize="16" color="#999999"/>
+		<s:Button id="renderVideoButton" label="Render Video" icon="{RenderVideoIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin" click="renderVideoButton_clickHandler(event)"/>
+		
+		<s:Button id="youtubeUploadButton" label="YouTube Upload" icon="{YouTubeUploadIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin" click="dispatchEvent(new AppEvent(AppEvent.YOU_TUBE_POPOUT, true))"/>
+		
+		<s:Button id="settingsButton" label="Settings" icon="{SettingsIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin" click="settingsButton_clickHandler(event)"/>
+		<s:Spacer height="4"/>
+		<s:Label text="CAMERA" fontSize="16" color="#999999"/>
+		<s:Button id="screenCaptureButton" label="Screen Capture"  icon="{ScreenCaptureIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin" click="screenCaptureButton_clickHandler(event)"/>
+		
+		<s:Button id="webCamButton" label="Web Cam" icon="{WebCamIcon}" skinClass="application.skins.BackgroundlessIconLabelButtonSkin" click="webCamButton_clickHandler(event)"/>
+		
+	</s:VGroup>
+</s:BorderContainer>

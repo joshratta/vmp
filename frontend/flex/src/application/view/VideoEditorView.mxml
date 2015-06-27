@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:view="application.view.*" 
+		 xmlns:popups="application.view.popups.*"
+		 width="100%" height="100%">
+	<fx:Script>
+		<![CDATA[
+			import application.events.AppEvent;
+			
+			[Bindable]
+			private var youTubeOn:Boolean = false;
+			
+			protected function youTubePopUpHandler(event:AppEvent):void
+			{
+				youTubeOn = event.data;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%" gap="0">
+		<view:TopPanel lineX="{leftPanel.width}"/>
+		<mx:VDividedBox width="100%" height="100%" verticalGap="2">
+			<mx:HDividedBox width="100%" height="100%" verticalScrollPolicy="off" horizontalGap="2" minHeight="10">
+				<view:LeftPanel id="leftPanel" YouTubePopUp="youTubePopUpHandler(event)" 
+								width="230" height="100%"/>
+				<view:CenterPanel width="100%" height="100%" />
+				<view:RightPanel height="100%" minWidth="200" width="330"/>
+			</mx:HDividedBox>		
+			<view:TimelineView width="{width}" height="57.5%" scaleIndex="@{bottomPanel.zoomScaleIndex}"/>
+		</mx:VDividedBox>
+		<view:BottomPanel id="bottomPanel"/>
+	</s:VGroup>
+	<s:BorderContainer width="100%" height="100%" visible="{youTubeOn}" includeInLayout="{youTubeOn}" borderVisible="false" alpha="0.33"/>
+	<popups:YouTubeWindow horizontalCenter="0" verticalCenter="0" visible="{youTubeOn}" includeInLayout="{youTubeOn}" YouTubePopUp="youTubePopUpHandler(event)"/>
+</s:Group>
